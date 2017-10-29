@@ -66,7 +66,25 @@ public class ActivityNetwork {
   }
 
   /**
-   * Return the node given the node ID.
+   * Delete the node in the network with the given node ID. Checks for node existence.
+   *
+   * @param nodeId ID of the node to delete.
+   * @return True if the node existed in the network. False otherwise.
+   */
+  public boolean deleteNode(final long nodeId) {
+    if (!isNodeInNetwork(nodeId)) {
+      return false;
+    }
+
+    // If node exists in network, delete from the node list. Resort.
+    nodeList.removeIf(n -> n.getNodeId() == nodeId);
+    sortNodes();
+
+    return true;
+  }
+
+  /**
+   * Return the node given the node ID. Checks for node existence.
    *
    * @param nodeId ID of the node to retrieve.
    * @return Node object corresponding to the given node ID. Otherwise, return an empty node with a node ID of -1.
