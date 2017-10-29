@@ -59,6 +59,7 @@ public class ActivityNode {
     this.optimisticTime = optimisticTime;
     this.pessimisticTime = pessimisticTime;
     this.expectedTime = computeExpectedTime();
+    this.dependencies = new ArrayList<Long>();
   }
 
   /**
