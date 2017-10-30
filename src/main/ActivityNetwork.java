@@ -2,6 +2,8 @@
 /// This file contains the ActivityNetwork class, which represents a network of nodes in the Critical Path Method.
 ///
 
+package main;
+
 import java.util.ArrayList;
 
 public class ActivityNetwork {

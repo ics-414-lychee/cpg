@@ -3,18 +3,20 @@
 /// disk.
 ///
 
+package main;
+
 import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 
 @SuppressWarnings("unchecked")
 public final class NetworkStorage {
   /**
-   * Save the current network. The time at which this network was saved is returned.
+   * Export the given network as a JSON string.
    *
    * @param a Network to store.
-   * @return The time in milliseconds, corresponding to the time which the network was saved.
+   * @return The given network as a JSON string.
    */
-  public static long storeNetwork(ActivityNetwork a) {
+  private String exportNetworkAsJSON(ActivityNetwork a) {
     JSONArray nodeList = new JSONArray();
     JSONObject net = new JSONObject();
 
@@ -37,6 +39,18 @@ public final class NetworkStorage {
 
     net.put("ProjectID", a.getNetworkId());
     net.put("NodeList", nodeList);
+
+    return net.toString();
+  }
+
+  /**
+   * Save the current network. The time at which this network was saved is returned.
+   *
+   * @param a Network to store.
+   * @return The time in milliseconds, corresponding to the time which the network was saved.
+   */
+  public static long storeNetwork(ActivityNetwork a) {
+
   }
 
   /**

@@ -1,6 +1,7 @@
 ///
 /// This file contains the NetworkController class, which will control and manage various ActivityNetwork instances.
 ///
+package main;
 
 import java.util.ArrayList;
 
@@ -10,9 +11,6 @@ public class NetworkController {
 
   /// Chain of timestamps, whose order corresponds with the network chain.
   ArrayList<Long> timestampChain;
-
-
-
 
 
 }
