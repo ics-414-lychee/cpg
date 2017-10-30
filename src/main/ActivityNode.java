@@ -2,7 +2,10 @@
 /// This file contains the ActivityNode class, which represents activity nodes in the Critical Path Method.
 ///
 
-import java.util.ArrayList;
+package main;
+
+import java.util.Set;
+import java.util.HashSet;
 
 public class ActivityNode {
   /// Unique identifier for this specific node.
@@ -26,8 +29,8 @@ public class ActivityNode {
   /// Computed expected time in hours to activity completion.
   private double expectedTime;
 
-  /// List of nodeIds associated that this activity depends on.
-  private ArrayList<Long> dependencies;
+  /// Set of nodeIds associated that this activity depends on.
+  private Set<Long> dependencies;
 
   /**
    * Computes the expected time using the current normal, optimistic, and pessimistic times. Using the formula defined
@@ -46,12 +49,12 @@ public class ActivityNode {
    * @param nodeId          Unique (with respect to network) identifier for this specific node.
    * @param name            Name associated with the activity.
    * @param description     Description associated with the activity in hours.
+   * @param pessimisticTime Pessimistic time to activity completion in hours.
    * @param normalTime      Normal time to activity completion in hours.
    * @param optimisticTime  Optimistic time to activity completion in hours.
-   * @param pessimisticTime Pessimistic time to activity completion in hours.
    */
-  public ActivityNode(long nodeId, String name, String description, double normalTime, double optimisticTime,
-                      double pessimisticTime) {
+  public ActivityNode(long nodeId, String name, String description, double pessimisticTime,
+                      double normalTime, double optimisticTime) {
     this.nodeId = nodeId;
     this.name = name;
     this.description = description;
@@ -59,30 +62,7 @@ public class ActivityNode {
     this.optimisticTime = optimisticTime;
     this.pessimisticTime = pessimisticTime;
     this.expectedTime = computeExpectedTime();
-    this.dependencies = new ArrayList<Long>();
-  }
-
-  /**
-   * Constructor with dependencies given. Sets the nodeId, name, description, all times, and the dependencies. Computes
-   * and sets the normal time as well.
-   *
-   * @param nodeId          Unique (with respect to network) identifier for this specific node.
-   * @param name            Name associated with the activity.
-   * @param description     Description associated with the activity in hours.
-   * @param normalTime      Normal time to activity completion in hours.
-   * @param optimisticTime  Optimistic time to activity completion in hours.
-   * @param pessimisticTime Pessimistic time to activity completion in hours.
-   */
-  public ActivityNode(long nodeId, String name, String description, double normalTime, double optimisticTime,
-                      double pessimisticTime, ArrayList<Long> dependencies) {
-    this.nodeId = nodeId;
-    this.name = name;
-    this.description = description;
-    this.normalTime = normalTime;
-    this.optimisticTime = optimisticTime;
-    this.pessimisticTime = pessimisticTime;
-    this.expectedTime = computeExpectedTime();
-    this.dependencies = dependencies;
+    this.dependencies = new HashSet<>();
   }
 
   /**
@@ -117,7 +97,7 @@ public class ActivityNode {
    *
    * @return The node's dependencies.
    */
-  public ArrayList<Long> getDependencies() {
+  public Set<Long> getDependencies() {
     return dependencies;
   }
 
@@ -140,12 +120,12 @@ public class ActivityNode {
   }
 
   /**
-   * Return all times associated with the node in order of: normal, optimistic, pessimistic, expected.
+   * Return all times associated with the node in order of: pessimistic, normal, optimistic, expected.
    *
    * @return All times associated with the node.
    */
   public double[] getTimes() {
-    return new double[]{normalTime, optimisticTime, pessimisticTime, expectedTime};
+    return new double[]{pessimisticTime, normalTime, optimisticTime, expectedTime};
   }
 
   /**
@@ -185,7 +165,7 @@ public class ActivityNode {
    * @param dependencies The new node's dependencies.
    * @return True if the dependencies were set. False otherwise.
    */
-  public boolean setDependencies(ArrayList<Long> dependencies) {
+  public boolean setDependencies(Set<Long> dependencies) {
     for (Long dependency : dependencies) {
       if (dependency == this.nodeId) {
         return false;
