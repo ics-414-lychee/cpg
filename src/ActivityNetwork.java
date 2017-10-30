@@ -1,6 +1,6 @@
-/**
- * This file contains the ActivityNetwork class, which represents a network of nodes in the Critical Path Method.
- */
+///
+/// This file contains the ActivityNetwork class, which represents a network of nodes in the Critical Path Method.
+///
 
 import java.util.ArrayList;
 
@@ -28,7 +28,7 @@ public class ActivityNetwork {
    */
   public ActivityNetwork(long networkId) {
     this.networkId = networkId;
-    this.nodeList = new ArrayList<ActivityNode>();
+    this.nodeList = new ArrayList<>();
     this.startNodeId = 0;
   }
 
@@ -110,8 +110,7 @@ public class ActivityNetwork {
   public double computeTotalSlack(int nodeId) {
     if (!isNodeInNetwork(nodeId)) {
       throw new java.lang.RuntimeException("Node does not exist in network.");
-    }
-    else {
+    } else {
       // TODO: finish this calculation: http://www.pmknowledgecenter.com/dynamic_scheduling/baseline/activity-slack-total-safety-and-free-slack-definitions
       return 0;
     }
@@ -127,8 +126,7 @@ public class ActivityNetwork {
   public double computeSafetySlack(int nodeId) {
     if (!isNodeInNetwork(nodeId)) {
       throw new java.lang.RuntimeException("Node does not exist in network.");
-    }
-    else {
+    } else {
       // TODO: finish this calculation: http://www.pmknowledgecenter.com/dynamic_scheduling/baseline/activity-slack-total-safety-and-free-slack-definitions
       return 0;
     }
@@ -144,8 +142,7 @@ public class ActivityNetwork {
   public double computeFreeSlack(int nodeId) {
     if (!isNodeInNetwork(nodeId)) {
       throw new java.lang.RuntimeException("Node does not exist in network.");
-    }
-    else {
+    } else {
       // TODO: finish this calculation: http://www.pmknowledgecenter.com/dynamic_scheduling/baseline/activity-slack-total-safety-and-free-slack-definitions
       return 0;
     }
@@ -166,7 +163,25 @@ public class ActivityNetwork {
    *
    * @return The network's starting node ID.
    */
-  public long getStartNodeId () {
+  public long getStartNodeId() {
     return startNodeId;
+  }
+
+  /**
+   * Accessor method for the network ID.
+   *
+   * @return The network ID.
+   */
+  public long getNetworkId() {
+    return networkId;
+  }
+
+  /**
+   * Accessor method for the node list.
+   *
+   * @return The list of nodes, in it's current order.
+   */
+  public ArrayList<ActivityNode> getNodeList() {
+    return nodeList;
   }
 }

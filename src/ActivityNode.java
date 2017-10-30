@@ -1,6 +1,6 @@
-/**
- * This file contains the ActivityNode class, which represents activity nodes in the Critical Path Method.
- */
+///
+/// This file contains the ActivityNode class, which represents activity nodes in the Critical Path Method.
+///
 
 import java.util.ArrayList;
 
