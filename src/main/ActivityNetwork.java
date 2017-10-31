@@ -5,6 +5,7 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class ActivityNetwork {
   /// Unique identifier for this specific network.
@@ -78,8 +79,13 @@ public class ActivityNetwork {
       return false;
     }
 
-    // If node exists in network, delete from the node list. Resort.
+    // If node exists in network, delete from the node list.
     nodeList.removeIf(n -> n.getNodeId() == nodeId);
+
+    // Iterate through node list and purge this dependency. Resort the list.
+    for (ActivityNode n : nodeList) {
+      n.setDependencies(n.getDependencies().stream().filter(d -> d != nodeId).collect(Collectors.toSet()));
+    }
     sortNodes();
 
     return true;
