@@ -18,3 +18,5 @@ If(new.getDependencies()!=null)
 Else
   nodeVisited.push(new);  //when no dependency exists, push to stack
   arrayList.remove(new);  //might need to monitor a master list to know when all elements are removed.
+
+/* the problem i encountered was when pushing a node to a stack and deleting it from the main list, updating the dependency list for all other existing nodes is hard */
