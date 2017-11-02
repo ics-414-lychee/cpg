@@ -36,6 +36,18 @@ public class ActivityNetwork {
   }
 
   /**
+   * Cloning method, using for creating a new instance of the current network.
+   */
+  public ActivityNetwork clone() {
+    ActivityNetwork a = new ActivityNetwork(this.getNetworkId());
+    for (ActivityNode n : this.getNodeList()) {
+      a.insertNode(n);
+    }
+
+    return a;
+  }
+
+  /**
    * Check if a given node is in the network using the node's ID.
    *
    * @param nodeId ID of the node to determine existence of.

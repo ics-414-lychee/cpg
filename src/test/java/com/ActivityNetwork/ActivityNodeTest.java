@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.lang.Math;
 
 import org.junit.*;
+
 import static org.junit.Assert.*;
 
 public class ActivityNodeTest {

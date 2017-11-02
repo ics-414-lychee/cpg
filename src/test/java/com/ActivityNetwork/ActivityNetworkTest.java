@@ -4,9 +4,25 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import org.junit.*;
+
 import static org.junit.Assert.*;
 
 public class ActivityNetworkTest {
+  /**
+   * Verify that networks can be cloned correctly, and that they can be modified separately.
+   */
+  @Test
+  public void testNetworkCloning() {
+    ActivityNetwork a = new ActivityNetwork(123);
+    ActivityNetwork b = a.clone();
+
+    assertEquals(a.getNetworkId(), b.getNetworkId());
+    a.insertNode(new ActivityNode(0, "Working Wings", "Wings are working", 5, 10, 15));
+
+    assertEquals(1, a.getNodeList().size());
+    assertEquals(0, b.getNodeList().size());
+  }
+
   /**
    * Verify that the nodes are inserted if and only if their node IDs are unique.
    */
