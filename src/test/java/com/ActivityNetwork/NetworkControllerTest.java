@@ -99,6 +99,34 @@ public class NetworkControllerTest {
   }
 
   /**
+   * Verify that an action can be redone, and that the chains aren't modified if we undo past the point of modification.
+   * Also verifies that the action of adding or modifying a node does not allow a redo action to occur.
+   */
+  @Test
+  public void testRedoNetwork() {
+    NetworkController nc = new NetworkController(100);
+    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork()));
+
+    for (int i = 0; i < 5; i++) {
+      networkIDList.add(nc.createNetwork());
+    }
+    assertEquals(0, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
+
+    ActivityNetwork a = nc.retrieveNetwork(networkIDList.get(0));
+    a.insertNode(new ActivityNode(0, "Working Wings", "Wings are working", 5, 10, 15));
+    assertEquals(true, nc.modifyNetwork(a));
+    assertEquals(1, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
+
+    assertEquals(true, nc.undoNetworkChange(networkIDList.get(0)));
+    assertEquals(0, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
+
+    assertEquals(true, nc.redoNetworkChange(networkIDList.get(0)));
+    assertEquals(1, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
+
+    assertEquals(false, nc.redoNetworkChange(networkIDList.get(0)));
+  }
+
+  /**
    * Verify that the timestamp associated with the retrieved node changes upon modification.
    */
   @Test
