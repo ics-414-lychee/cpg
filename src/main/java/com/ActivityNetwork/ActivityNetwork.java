@@ -5,6 +5,8 @@
 package com.ActivityNetwork;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class ActivityNetwork {
@@ -17,15 +19,18 @@ public class ActivityNetwork {
   /// Node ID of the starting node of this network.
   private long startNodeId;
 
+  /// The deadline associated with network. Cannot be less than the minimal critical path sum (length).
+  private long hoursDeadline;
+
   /**
    * Sort the current list of nodes by order of dependencies (topological sort).
    */
   private void sortNodes() {
-    // TODO: finish this
+    // TODO: finish topological sort
   }
 
   /**
-   * Constructor. Assigns the network ID, and the starting values for node list and start node ID.
+   * Constructor. Assigns the network ID, and the starting values for node list, start node ID, and deadline.
    *
    * @param networkId Unique (with respect to list of networks) identifier for this specific network.
    */
@@ -33,6 +38,7 @@ public class ActivityNetwork {
     this.networkId = networkId;
     this.nodeList = new ArrayList<>();
     this.startNodeId = 0;
+    this.hoursDeadline = 0;
   }
 
   /**
@@ -44,6 +50,7 @@ public class ActivityNetwork {
       a.insertNode(n);
     }
 
+    a.hoursDeadline = this.hoursDeadline;
     return a;
   }
 
@@ -121,40 +128,141 @@ public class ActivityNetwork {
   }
 
   /**
+   * Compute the sum of the critical path times. This represents the minimum time a project requires to completion.
+   *
+   * @return The sum of the critical path times in hours.
+   */
+  private double computeCriticalPathTime() {
+    List<Double> eta = computeCriticalPath().stream().map(n_i ->
+        retrieveNode(n_i).getTimes()[3]).collect(Collectors.toList());
+
+    return eta.stream().reduce((double) 0, (n_1, n_2) -> (n_1 + n_2));
+  }
+
+  /**
+   * Mutator method for the deadline field. This value must not be less than the sum of the critical path times.
+   *
+   * @param hoursDeadline Desired deadline in hours.
+   * @return True if hoursDeadline was changed. False if the value is less than the sum of the critical path times.
+   */
+  public boolean setHoursDeadline(long hoursDeadline) {
+    if (hoursDeadline < computeCriticalPathTime()) {
+      return false;
+    } else {
+      this.hoursDeadline = hoursDeadline;
+      return true;
+    }
+  }
+
+  /**
+   * Compute the earliest time the node with the given ID can finish.
+   *
+   * @param nodeId ID of the node to compute the EF of.
+   * @return The earliest finish time of the given node.
+   */
+  private double computeEarliestFinishTime(long nodeId) {
+    double offset = hoursDeadline - computeCriticalPathTime();
+    // TODO: finish EF computation
+    return offset;
+  }
+
+  /**
+   * Compute the latest time the node with the given ID can finish.
+   *
+   * @param nodeId ID of the node to compute the LF of.
+   * @return The latest finish time of the given node.
+   */
+  private double computeLatestFinishTime(long nodeId) {
+    double offset = hoursDeadline - computeCriticalPathTime();
+    // TODO: finish LF computation
+    return offset;
+  }
+
+  /**
+   * Compute the earliest time a node with the given ID can start.
+   *
+   * @param nodeId ID of the node to compute the ES of.
+   * @return The earliest start time of the given node.
+   */
+  private double computeEarliestStartTime(long nodeId) {
+    double offset = hoursDeadline - computeCriticalPathTime();
+    // TODO: finish ES computation
+    return offset;
+  }
+
+  /**
+   * Compute the latest time a node with the given ID can start.
+   *
+   * @param nodeId ID of the node to compute the LS of.
+   * @return The latest start time of the given node.
+   */
+  private double computeLatestStartTime(long nodeId) {
+    double offset = hoursDeadline - computeCriticalPathTime();
+    // TODO: finish LS computation
+    return offset;
+  }
+
+  /**
+   * Find all predecessors for the node matching the given node ID.
+   *
+   * @param nodeId ID of the node to find predecessors for.
+   * @return All predecessors for the the given node.
+   */
+  private ArrayList<ActivityNode> findPredecessors(long nodeId) {
+    // TODO: finish predecessor search
+    return new ArrayList<>(Arrays.asList(new ActivityNode(0, "N", "N", 0, 0, 0)));
+  }
+
+  /**
+   * Find all successors for the node matching the given node ID.
+   *
+   * @param nodeId ID of the node to find successors for.
+   * @return All successors for the given node.
+   */
+  private ArrayList<ActivityNode> findSuccessors(long nodeId) {
+    // TODO: finish successor search
+    return new ArrayList<>(Arrays.asList(new ActivityNode(0, "N", "N", 0, 0, 0)));
+  }
+
+  /**
    * Compute the total slack given the node ID of a node in the network. The user here **MUST** check for node existence
-   * before using this method.
+   * before using this method. Using the method given here http://www.pmknowledgecenter
+   * .com/dynamic_scheduling/baseline/activity-slack-total-safety-and-free-slack-definitions
    *
    * @param nodeId ID of the node to compute the total slack for.
    * @return The total slack of the node with the given ID.
    */
-  public double computeTotalSlack(int nodeId) {
+  public double computeTotalSlack(long nodeId) {
     if (!isNodeInNetwork(nodeId)) {
       throw new java.lang.RuntimeException("Node does not exist in network.");
     } else {
-      // TODO: finish this calculation: http://www.pmknowledgecenter.com/dynamic_scheduling/baseline/activity-slack-total-safety-and-free-slack-definitions
-      return 0;
+      return computeLatestFinishTime(nodeId) - computeEarliestFinishTime(nodeId);
     }
   }
 
   /**
    * Compute the safety slack given the node ID of a node in the network. The user here **MUST** check for node
-   * existence before using this method.
+   * existence before using this method. Using the method given here: http://www.pmknowledgecenter
+   * .com/dynamic_scheduling/baseline/activity-slack-total-safety-and-free-slack-definitions
    *
    * @param nodeId ID of the node to compute the safety slack for.
    * @return The safety slack of the node with the given ID.
    */
-  public double computeSafetySlack(int nodeId) {
+  public double computeSafetySlack(long nodeId) {
     if (!isNodeInNetwork(nodeId)) {
       throw new java.lang.RuntimeException("Node does not exist in network.");
     } else {
-      // TODO: finish this calculation: http://www.pmknowledgecenter.com/dynamic_scheduling/baseline/activity-slack-total-safety-and-free-slack-definitions
-      return 0;
+      List<Double> eta = findPredecessors(nodeId).stream().map(n_i ->
+          computeLatestFinishTime(n_i.getNodeId())).collect(Collectors.toList());
+
+      return computeLatestStartTime(nodeId) - eta.stream().reduce((double) 0, Double::max);
     }
   }
 
   /**
    * Compute the free slack given the node ID of a node in the network. The user here **MUST** check for node
-   * existence before using this method.
+   * existence before using this method. Using the method given here: http://www.pmknowledgecenter
+   * .com/dynamic_scheduling/baseline/activity-slack-total-safety-and-free-slack-definitions
    *
    * @param nodeId ID of the node to compute the free slack for.
    * @return The free slack of the node with the given ID.
@@ -163,8 +271,10 @@ public class ActivityNetwork {
     if (!isNodeInNetwork(nodeId)) {
       throw new java.lang.RuntimeException("Node does not exist in network.");
     } else {
-      // TODO: finish this calculation: http://www.pmknowledgecenter.com/dynamic_scheduling/baseline/activity-slack-total-safety-and-free-slack-definitions
-      return 0;
+      List<Double> eta = findSuccessors(nodeId).stream().map(n_i ->
+          computeEarliestStartTime(n_i.getNodeId())).collect(Collectors.toList());
+
+      return eta.stream().reduce((double) 0, Double::min) - computeEarliestFinishTime(nodeId);
     }
   }
 
@@ -173,9 +283,9 @@ public class ActivityNetwork {
    *
    * @return An array of node IDs that pertain to this network, which represent the current critical path.
    */
-  public long[] computeCriticalPath() {
-    // TODO: finish this
-    return new long[0];
+  public ArrayList<Long> computeCriticalPath() {
+    // TODO: finish critical path computation
+    return new ArrayList<>(Arrays.asList((long) 0, (long) 1));
   }
 
   /**
