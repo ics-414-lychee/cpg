@@ -1,0 +1,35 @@
+Stack<Long> stack = new Stack<Long>();//stack to deposit id's
+ArrayList<ActivityNode> original = new ArrayList<ActivityNode>(nodeList);//using an original list to check if node has already been pushed
+
+private void sortNodes(ArrayList<ActivityNode> listOfNodes) {
+  // TODO: finish topological sort
+	
+	  for (int i=0; i< listOfNodes.size()-1; i++) {
+		  
+		  ActivityNode node = listOfNodes.get(i);
+		  setNode(node);//sets node to the values
+		  topSort(node,node.getNodeId());
+	  }
+	  
+  }
+
+
+private void topSort(ActivityNode node, Long id) {
+	  if(node.getDependencies()!=null) {
+		  
+		  Set<Long> depend = node.getDependencies();
+		  Iterator <Long> idList = depend.iterator();
+		  
+		  while(idList.hasNext()) {
+			  topSort(node,idList.next());
+		  }
+	  }
+	  else {
+		  if(original.contains(node)) {
+		  stack.push(id);
+		  original.remove(node);
+		  return;
+		  }
+		  return;//may encounter an error here; if original does not contain the node then would need to push the previous node
+	  }
+}
