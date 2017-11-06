@@ -13,7 +13,7 @@ public class ActivityNetworkTest {
    */
   @Test
   public void testNetworkCloning() {
-    ActivityNetwork a = new ActivityNetwork(123);
+    ActivityNetwork a = new ActivityNetwork(123, "Sample Project");
     ActivityNetwork b = a.clone();
 
     assertEquals(a.getNetworkId(), b.getNetworkId());
@@ -28,7 +28,7 @@ public class ActivityNetworkTest {
    */
   @Test
   public void testNodeInsertion() {
-    ActivityNetwork n = new ActivityNetwork(0);
+    ActivityNetwork n = new ActivityNetwork(0, "Sample Project");
     assertEquals(0, n.getNodeList().size());
 
     assertEquals(true, n.insertNode(new ActivityNode(0, "Working Wings", "Wings are working", 5, 10, 15)));
@@ -46,7 +46,7 @@ public class ActivityNetworkTest {
    */
   @Test
   public void testNodeTrivialDeletion() {
-    ActivityNetwork n = new ActivityNetwork(0);
+    ActivityNetwork n = new ActivityNetwork(0, "Sample Project");
 
     assertEquals(true, n.insertNode(new ActivityNode(0, "Working Wings", "Wings are working", 5, 10, 15)));
     assertEquals(1, n.getNodeList().size());
@@ -63,7 +63,7 @@ public class ActivityNetworkTest {
    */
   @Test
   public void testNodeExistence() {
-    ActivityNetwork n = new ActivityNetwork(0);
+    ActivityNetwork n = new ActivityNetwork(0, "Sample Project");
 
     assertEquals(true, n.insertNode(new ActivityNode(0, "Working Wings", "Wings are working", 5, 10, 15)));
     assertEquals(true, n.isNodeInNetwork(0));
@@ -75,7 +75,7 @@ public class ActivityNetworkTest {
    */
   @Test
   public void testNodeRetrieval() {
-    ActivityNetwork n = new ActivityNetwork(0);
+    ActivityNetwork n = new ActivityNetwork(0, "Sample Project");
 
     assertEquals(true, n.insertNode(new ActivityNode(0, "Working Wings", "Wings are working", 5, 10, 15)));
     assertEquals(0, n.retrieveNode(0).getNodeId());
@@ -87,7 +87,7 @@ public class ActivityNetworkTest {
    */
   @Test
   public void testNodesSortedAfterModification() {
-    ActivityNetwork n = new ActivityNetwork(0);
+    ActivityNetwork n = new ActivityNetwork(0, "Sample Project");
 
     n.insertNode(new ActivityNode(9, "Working Wings", "Wings are working", 5, 10, 15));
     ActivityNode a = new ActivityNode(7, "Working Head", "Head is working", 10, 15, 16);

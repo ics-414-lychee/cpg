@@ -13,6 +13,9 @@ public class ActivityNetwork {
   /// Unique identifier for this specific network.
   private long networkId;
 
+  /// Name of the network, assigned by user.
+  private String networkName;
+
   /// List of nodes that belong to this network.
   private ArrayList<ActivityNode> nodeList;
 
@@ -34,8 +37,9 @@ public class ActivityNetwork {
    *
    * @param networkId Unique (with respect to list of networks) identifier for this specific network.
    */
-  public ActivityNetwork(long networkId) {
+  public ActivityNetwork(long networkId, String networkName) {
     this.networkId = networkId;
+    this.networkName = networkName;
     this.nodeList = new ArrayList<>();
     this.startNodeId = 0;
     this.hoursDeadline = 0;
@@ -45,7 +49,7 @@ public class ActivityNetwork {
    * Cloning method, using for creating a new instance of the current network.
    */
   public ActivityNetwork clone() {
-    ActivityNetwork a = new ActivityNetwork(this.getNetworkId());
+    ActivityNetwork a = new ActivityNetwork(this.getNetworkId(), this.getNetworkName());
     for (ActivityNode n : this.getNodeList()) {
       a.insertNode(n);
     }
@@ -313,5 +317,14 @@ public class ActivityNetwork {
    */
   public ArrayList<ActivityNode> getNodeList() {
     return nodeList;
+  }
+
+  /**
+   * Accessor method for the network name.
+   *
+   * @return The name assigned to this network.
+   */
+  public String getNetworkName() {
+    return networkName;
   }
 }

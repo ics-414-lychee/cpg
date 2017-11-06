@@ -15,6 +15,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.HttpResponse;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -26,7 +27,7 @@ public final class NetworkStorage {
    * @param a Network to store.
    * @return The given network as a JSON string.
    */
-  private String exportNetworkAsJSON(ActivityNetwork a) {
+  private static String exportNetworkAsJSON(ActivityNetwork a) {
     JSONArray nodeList = new JSONArray();
     JSONObject net = new JSONObject();
 
@@ -39,15 +40,16 @@ public final class NetworkStorage {
       // Times are accessed as an array.
       double times[] = n.getTimes();
       node.put("NormalTime", times[0]);
-      node.put("Optimistictime", times[1]);
+      node.put("OptimisticTime", times[1]);
       node.put("PessimisticTime", times[2]);
 
       // We store our dependency list as a comma-separated list. Store the nodes in the main list.
-      node.put("DependencyNodeID", String.join(",", n.getDependencies().toString()));
+      node.put("DependencyNodeID", n.getDependencies().toString().replaceAll("\\[|\\]",""));
       nodeList.add(node);
     }
 
     net.put("ProjectID", a.getNetworkId());
+    net.put("ProjectName", a.getNetworkName());
     net.put("NodeList", nodeList);
 
     return net.toString();
@@ -60,12 +62,12 @@ public final class NetworkStorage {
    * @param netString JSON string containing our network.
    * @return An ActivityNetwork instance parsed from the given network string.
    */
-  private ActivityNetwork importNetworkAsJSON(String netString) {
+  private static ActivityNetwork importNetworkAsJSON(String netString) {
     JSONParser jsonParser = new JSONParser();
 
     try {
       JSONObject jsonNet = (JSONObject) jsonParser.parse(netString);
-      ActivityNetwork a = new ActivityNetwork((Long) jsonNet.get("ProjectID"));
+      ActivityNetwork a = new ActivityNetwork((Long) jsonNet.get("ProjectID"), (String) jsonNet.get("ProjectName"));
 
       // Obtain and iterate through our node list.
       JSONArray nodeList = (JSONArray) jsonNet.get("NodeList");
@@ -91,7 +93,7 @@ public final class NetworkStorage {
 
     } catch (ParseException e) {
       // We return an empty network in the event we cannot parse our string.
-      return new ActivityNetwork(0);
+      return new ActivityNetwork(0, "");
     }
   }
 
@@ -124,10 +126,34 @@ public final class NetworkStorage {
 
       HttpResponse response = httpClient.execute(getRequest);
 
-      return new ActivityNetwork(0);
+      return new ActivityNetwork(0, "");
     }
     catch (IOException e){
-      return new ActivityNetwork(0);
+      return new ActivityNetwork(0, "");
     }
+  }
+
+  /**
+   * Creates an account using the given login information.
+   *
+   * @param u Username of the user to create an account for.
+   * @param p Password of the user to create an account for.
+   * @return True if account creation was successful. False otherwise.
+   */
+  public static boolean createAccount (String u, String p) {
+    // TODO: finish account creation
+    return true;
+  }
+
+  /**
+   * Checks if the password matches with the given username.
+   *
+   * @param u Username of the user to login with.
+   * @param p Password of the user to login with.
+   * @return True if the password and username match (i.e. login was successful). False otherwise.
+   */
+  public static boolean verifyLoginInfo (String u, String p) {
+    // TODO: finish login, is this the only place we can get our project IDs and names??
+    return true;
   }
 }

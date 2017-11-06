@@ -15,10 +15,10 @@ public class NetworkControllerTest {
   @Test
   public void testRetrieveNetwork() {
     NetworkController nc = new NetworkController();
-    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork()));
+    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 10; i++) {
-      networkIDList.add(nc.createNetwork());
+      networkIDList.add(nc.createNetwork("Test Network"));
     }
 
     ActivityNetwork a = nc.retrieveNetwork(networkIDList.get(0));
@@ -36,15 +36,15 @@ public class NetworkControllerTest {
   @Test
   public void testAddChainLink() {
     NetworkController nc = new NetworkController(100);
-    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork()));
+    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 100; i++) {
-      networkIDList.add(nc.createNetwork());
+      networkIDList.add(nc.createNetwork("Test Network"));
     }
     assertEquals((long) networkIDList.get(0), nc.retrieveNetwork(networkIDList.get(0)).getNetworkId());
     assertEquals((long) networkIDList.get(1), nc.retrieveNetwork(networkIDList.get(1)).getNetworkId());
 
-    networkIDList.add(nc.createNetwork());
+    networkIDList.add(nc.createNetwork("Test Network"));
     assertEquals(0, nc.retrieveNetwork(networkIDList.get(0)).getNetworkId());
     assertEquals((long) networkIDList.get(1), nc.retrieveNetwork(networkIDList.get(1)).getNetworkId());
   }
@@ -55,10 +55,10 @@ public class NetworkControllerTest {
   @Test
   public void testModifyNetwork() {
     NetworkController nc = new NetworkController(100);
-    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork()));
+    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
-      networkIDList.add(nc.createNetwork());
+      networkIDList.add(nc.createNetwork("Test Network"));
     }
     assertEquals(0, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
 
@@ -67,7 +67,7 @@ public class NetworkControllerTest {
     assertEquals(true, nc.modifyNetwork(a));
     assertEquals(1, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
 
-    ActivityNetwork b = new ActivityNetwork(123);
+    ActivityNetwork b = new ActivityNetwork(123, "Some Other Network??");
     assertEquals(false, nc.modifyNetwork(b));
   }
 
@@ -78,10 +78,10 @@ public class NetworkControllerTest {
   @Test
   public void testUndoNetwork() {
     NetworkController nc = new NetworkController(100);
-    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork()));
+    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
-      networkIDList.add(nc.createNetwork());
+      networkIDList.add(nc.createNetwork("Test Network"));
     }
     assertEquals(0, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
 
@@ -105,10 +105,10 @@ public class NetworkControllerTest {
   @Test
   public void testRedoNetwork() {
     NetworkController nc = new NetworkController(100);
-    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork()));
+    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
-      networkIDList.add(nc.createNetwork());
+      networkIDList.add(nc.createNetwork("Test Network"));
     }
     assertEquals(0, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
 
@@ -132,7 +132,7 @@ public class NetworkControllerTest {
   @Test
   public void testTimestampRetrieval() {
     NetworkController nc = new NetworkController(100);
-    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork()));
+    ArrayList<Long> networkIDList = new ArrayList<>(Arrays.asList(nc.createNetwork("Test Network")));
     long t = nc.retrieveTimestamp(networkIDList.get(0));
 
     ActivityNetwork a = nc.retrieveNetwork(networkIDList.get(0));

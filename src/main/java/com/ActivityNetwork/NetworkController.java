@@ -74,13 +74,14 @@ public class NetworkController {
    * Append a network to our chain, along with the given timestamp. We are now unable to "redo", so clear our removed
    * chains.
    *
+   * @param networkName Name to attach to the network.
    * @return The generated network ID.
    */
-  public long createNetwork() {
+  public long createNetwork(String networkName) {
     SecureRandom random = new SecureRandom();
     long networkID = Math.abs(random.nextLong());
 
-    ActivityNetwork a = new ActivityNetwork(networkID);
+    ActivityNetwork a = new ActivityNetwork(networkID, networkName);
     appendToChains(a, System.currentTimeMillis());
 
     removedNetworkChain.clear();
@@ -176,7 +177,7 @@ public class NetworkController {
 
     // Otherwise, the network does not exist. Return the list to normal.
     Collections.reverse(networkChain);
-    return new ActivityNetwork(0);
+    return new ActivityNetwork(0, "");
   }
 
   /**
