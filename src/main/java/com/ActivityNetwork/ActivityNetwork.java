@@ -4,9 +4,7 @@
 
 package com.ActivityNetwork;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ActivityNetwork {
@@ -19,17 +17,79 @@ public class ActivityNetwork {
   /// List of nodes that belong to this network.
   private ArrayList<ActivityNode> nodeList;
 
-  /// Node ID of the starting node of this network.
-  private long startNodeId;
-
   /// The deadline associated with network. Cannot be less than the minimal critical path sum (length).
   private long hoursDeadline;
 
   /**
    * Sort the current list of nodes by order of dependencies (topological sort).
+   *
+   * @param listOfNodes List of nodes to sort.
    */
-  private void sortNodes() {
-    // TODO: finish topological sort
+  private void sortNodes(ArrayList<ActivityNode> listOfNodes) {
+    Stack<Long> stack = new Stack<>(); // Stack to deposit id's.
+
+    // Using an original list to check if node has already been pushed.
+    ArrayList<ActivityNode> original = new ArrayList<>(nodeList);
+
+    for (int i = 0; i < listOfNodes.size(); i++) {
+      ActivityNode node = listOfNodes.get(i);
+
+      if (!original.contains(node)) {
+        // Do not do anything here.
+
+      } else if (node.getDependencies() == null) {
+        stack.push(node.getNodeId());
+        original.remove(node);
+
+      } else {
+        // Make dependency array.
+        Set<Long> depend = node.getDependencies();
+        Long[] array = depend.toArray(new Long[depend.size()]);
+
+        // Call topSort on current node.
+        topSort(node, array, stack, original);
+
+      }
+    }
+
+    for (int elemeno = 1; elemeno < stack.size(); elemeno++) {
+      Long nid = stack.pop();
+      ActivityNode noNoNode = retrieveNode(nid);
+      nodeList.add(elemeno, noNoNode);
+    }
+  }
+
+  /**
+   * Sort the dependencies given recursively.
+   *
+   * @param node Current working node.
+   * @param dependArr Dependencies associated with this node.
+   * @param stack Stack to sort nodes into.
+   * @param original Original, unmodified network.
+   */
+  private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> stack, ArrayList<ActivityNode> original) {
+    // Check all dependencies in array.
+    for (int j = 0; j < dependArr.length; j++) {
+      // Create/get new node from dependency list.
+      Long newId = dependArr[j];
+      ActivityNode newNode = retrieveNode(newId);
+
+      if (newNode.getDependencies() != null && original.contains(newNode)) {
+        Set<Long> newDepend = newNode.getDependencies();
+        Long[] newDepArr = newDepend.toArray(new Long[newDepend.size()]);
+        topSort(newNode, newDepArr, stack, original);
+
+      } else {
+        // If newNode doesn't have dependencies...
+
+        // New node hasn't been pushed yet.
+        if (original.contains(newNode)) {
+          stack.push(newNode.getNodeId());
+          original.remove(newNode);
+
+        }
+      }
+    }
   }
 
   /**
@@ -41,7 +101,6 @@ public class ActivityNetwork {
     this.networkId = networkId;
     this.networkName = networkName;
     this.nodeList = new ArrayList<>();
-    this.startNodeId = 0;
     this.hoursDeadline = 0;
   }
 
@@ -86,7 +145,7 @@ public class ActivityNetwork {
 
     // If node is unique, insert and sort the list.
     nodeList.add(node);
-    sortNodes();
+    sortNodes(nodeList);
 
     return true;
   }
@@ -109,7 +168,7 @@ public class ActivityNetwork {
     for (ActivityNode n : nodeList) {
       n.setDependencies(n.getDependencies().stream().filter(d -> d != nodeId).collect(Collectors.toSet()));
     }
-    sortNodes();
+    sortNodes(nodeList);
 
     return true;
   }
@@ -129,6 +188,27 @@ public class ActivityNetwork {
 
     // Node is not in list. Return an empty node with blank fields and zero fields.
     return new ActivityNode(-1, "", "", 0, 0, 0);
+  }
+
+  /**
+   * Set the dependencies of the node with the given ID. Verify that each dependency exists in the network.
+   *
+   * @param nodeId ID of the node to set the dependencies of.
+   * @param dependencies The new node's dependencies.
+   * @return True if all dependencies in D exist in the network. False otherwise.
+   */
+  public boolean setDependencies(long nodeId, Set<Long> dependencies) {
+    // Verify that the dependencies actually exist.
+    for (Long d : dependencies) {
+      if (!isNodeInNetwork(d)) {
+        return false;
+      }
+    }
+
+    // If they do exist, set the given node's dependencies. Resort our node list.
+    retrieveNode(nodeId).setDependencies(dependencies);
+    sortNodes(nodeList);
+    return true;
   }
 
   /**
@@ -298,7 +378,7 @@ public class ActivityNetwork {
    * @return The network's starting node ID.
    */
   public long getStartNodeId() {
-    return startNodeId;
+    return nodeList.get(0).getNodeId();
   }
 
   /**

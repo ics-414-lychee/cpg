@@ -1,5 +1,6 @@
 package com.ActivityNetwork;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -70,6 +71,24 @@ public class ActivityNetworkTest {
   }
 
   /**
+   * Verify that dependency setting will not occur if the given node does not exist in the network.
+   */
+  @Test
+  public void testBadDependencyList() {
+    ActivityNetwork n = new ActivityNetwork(0, "Sample Project");
+
+    n.insertNode(new ActivityNode(9, "Working Wings", "Wings are working", 5, 10, 15));
+    n.insertNode(new ActivityNode(7, "Working Head", "Head is working", 10, 15, 16));
+    n.insertNode(new ActivityNode(3, "Working Legs", "Legs are working", 12, 60, 80));
+
+    assertEquals(true, n.setDependencies(7, new HashSet<>(Arrays.asList((long) 3))));
+    assertEquals(true, n.retrieveNode(7).getDependencies().contains((long) 3));
+
+    assertEquals(false, n.setDependencies(7, new HashSet<>(Arrays.asList((long) 200))));
+    assertEquals(false, n.retrieveNode(7).getDependencies().contains((long) 200));
+  }
+
+  /**
    * Verify that the correct node is returned when requested, as well as an empty node being returned when the given
    * node ID does not correspond to any node in the current list.
    */
@@ -83,28 +102,51 @@ public class ActivityNetworkTest {
   }
 
   /**
-   * Verify that the nodes are sorted correctly after insertion and deletion.
+   * Verify that the nodes are sorted correctly after insertion and deletion. The history of the expected network is
+   * below.
+   *
+   * (Nodes Without Dependencies)
+   * t = 0: 9 ----------- 7 ----------- 3
+   *        (index 0) --- (index 1) ---(index 2)
+   *
+   * .
+   * .
+   * .
+   *
+   * (After Setting Dependencies)
+   * t = 2: 9 ----------> 3 ----------> 7
+   *        (index 0) --> (index 1) --> (index 2)
+   *
+   * (Deletion of Node 3)
+   * t = 3: 9 ----------> 7
+   *        (index 0) --> (index 1)
    */
   @Test
   public void testNodesSortedAfterModification() {
     ActivityNetwork n = new ActivityNetwork(0, "Sample Project");
 
     n.insertNode(new ActivityNode(9, "Working Wings", "Wings are working", 5, 10, 15));
-    ActivityNode a = new ActivityNode(7, "Working Head", "Head is working", 10, 15, 16);
-    ActivityNode b = new ActivityNode(3, "Working Legs", "Legs are working", 12, 60, 80);
+    n.insertNode(new ActivityNode(7, "Working Head", "Head is working", 10, 15, 16));
+    n.insertNode(new ActivityNode(3, "Working Legs", "Legs are working", 12, 60, 80));
+
+    // Each insertion triggers a sort, but without dependencies the sort should be stable.
+    assertEquals(9, n.getStartNodeId());
+    assertEquals(7, n.getNodeList().get(1).getNodeId());
+    assertEquals(3, n.getNodeList().get(2).getNodeId());
 
     // 7 depends on 3, 3 depends on 9, 9 is start node.
-    a.setDependencies(new HashSet<>(Arrays.asList((long) 3)));
-    b.setDependencies(new HashSet<>(Arrays.asList((long) 9)));
-    n.insertNode(a);
-    n.insertNode(b);
+    assertEquals(true, n.setDependencies(7, new HashSet<>(Arrays.asList((long) 3))));
+    assertEquals(true, n.setDependencies(3, new HashSet<>(Arrays.asList((long) 9))));
 
+    // By setting our dependencies, we change the order (because it sorts inside here).
     assertEquals(9, n.getStartNodeId());
+    assertEquals(3, n.getNodeList().get(1).getNodeId());
     assertEquals(7, n.getNodeList().get(2).getNodeId());
 
     // 7 now depends on 9, 9 is start node.
-    n.deleteNode(3);
+    assertEquals(true, n.deleteNode(3));
 
+    // Deletion also triggers another sort.
     assertEquals(9, n.getStartNodeId());
     assertEquals(7, n.getNodeList().get(1).getNodeId());
   }
