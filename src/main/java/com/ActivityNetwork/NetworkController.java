@@ -1,53 +1,68 @@
-///
-/// This file contains the NetworkController class, which will control and manage various ActivityNetwork instances.
-///
-
 package com.ActivityNetwork;
 
 import java.util.ArrayList;
-import java.security.SecureRandom;
 import java.util.Collections;
 
+/**
+ * The NetworkController class, which controls and manages various ActivityNetwork instances.
+ */
 public class NetworkController {
-  /// Chain of network instances. This holds the history of every project that has been open.
+  /** Chain of network instances. This holds the history of every project that has been open. */
   private ArrayList<ActivityNetwork> networkChain;
 
-  /// Chain of removed network instances. Used for the "redo" method.
+  /** Chain of removed network instances. Used for the "redo" method. */
   private ArrayList<ActivityNetwork> removedNetworkChain;
 
-  /// Chain of timestamps, whose order corresponds with the network chain.
+  /** Chain of timestamps, whose order corresponds with the network chain. */
   private ArrayList<Long> timestampChain;
 
-  /// Chain of removed timestamps, whose order corresponds with the removed network chain.
+  /** Chain of removed timestamps, whose order corresponds with the removed network chain. */
   private ArrayList<Long> removedTimestampChain;
 
-  /// The maximum length our chains can be. Will follow FIFO in event we reach this limit.
+  /** The maximum length our chains can be. Will follow FIFO in event we reach this limit. */
   private int maximumChainLength;
 
+  /** The username associated with this controller. Obtained from a successful login. */
+  private String u;
+
+  /** The authentication token associated with this controller. Obtained from a successful login. */
+  private String token;
+
   /**
-   * Constructor. We only initialize our chains here, and use a default value of 150 links for our maximum chain
+   * Constructor. We initialize our chains here, and use a default value of 150 links for our maximum chain
    * length.
+   *
+   * @param u     Username associated with the controller. Obtained from a successful login.
+   * @param token Authentication token associated with this controller. Obtained from a successful login.
    */
-  public NetworkController() {
-    networkChain = new ArrayList<>();
-    timestampChain = new ArrayList<>();
-    removedNetworkChain = new ArrayList<>();
-    removedTimestampChain = new ArrayList<>();
-    maximumChainLength = 150;
+  public NetworkController(String u, String token) {
+    this.u = u;
+    this.token = token;
+    this.maximumChainLength = 150;
+
+    this.networkChain = new ArrayList<>();
+    this.timestampChain = new ArrayList<>();
+    this.removedNetworkChain = new ArrayList<>();
+    this.removedTimestampChain = new ArrayList<>();
   }
 
   /**
-   * Constructor. We initialize our chains here, and set our maximum value of chain lengths. If this value is negative
-   * or zero, then we default to a value of 150.
+   * Constructor. We initialize our chains here, and use the given value for our maximum chain length. If this value
+   * is negative or zero, then we default to a value of 150.
    *
+   * @param u                  Username associated with the controller. Obtained from a successful login.
+   * @param token              Authentication token associated with this controller. Obtained from a successful login.
    * @param maximumChainLength Maximum length of our chains.
    */
-  public NetworkController(int maximumChainLength) {
-    networkChain = new ArrayList<>();
-    timestampChain = new ArrayList<>();
-    removedNetworkChain = new ArrayList<>();
-    removedTimestampChain = new ArrayList<>();
+  NetworkController(String u, String token, int maximumChainLength) {
+    this.u = u;
+    this.token = token;
     this.maximumChainLength = (maximumChainLength < 1) ? 150 : maximumChainLength;
+
+    this.networkChain = new ArrayList<>();
+    this.timestampChain = new ArrayList<>();
+    this.removedNetworkChain = new ArrayList<>();
+    this.removedTimestampChain = new ArrayList<>();
   }
 
   /**
@@ -71,15 +86,33 @@ public class NetworkController {
   }
 
   /**
+   * Load the network with the given ID into our network chain.
+   *
+   * @param networkID Network to load into our chain.
+   * @return True if the network with the given ID exists and was loaded correctly. False otherwise.
+   */
+  public boolean loadNetwork(long networkID) {
+    ActivityNetwork a = NetworkStorage.retrieveNetwork(token, u, networkID);
+
+    if (a.getNetworkId() == 0) {
+      return false;
+
+    } else {
+      // Network exists. We attach our network to our chains with the current timestamp.
+      appendToChains(a, System.currentTimeMillis());
+      return true;
+    }
+  }
+
+  /**
    * Append a network to our chain, along with the given timestamp. We are now unable to "redo", so clear our removed
    * chains.
    *
    * @param networkName Name to attach to the network.
    * @return The generated network ID.
    */
-  public long createNetwork(String networkName) {
-    SecureRandom random = new SecureRandom();
-    long networkID = Math.abs(random.nextLong());
+  long createNetwork(String networkName) {
+    long networkID = NetworkStorage.createNetwork(token, u, networkName);
 
     ActivityNetwork a = new ActivityNetwork(networkID, networkName);
     appendToChains(a, System.currentTimeMillis());
@@ -97,34 +130,51 @@ public class NetworkController {
    * @param a ActivityNetwork instance to add.
    * @return True if the modification was successful. False if there exists no network here with the given network ID.
    */
-  public boolean modifyNetwork(ActivityNetwork a) {
+  boolean modifyNetwork(ActivityNetwork a) {
     removedNetworkChain.clear();
     removedNetworkChain.clear();
 
     if (networkChain.stream().anyMatch(n -> n.getNetworkId() == a.getNetworkId())) {
       appendToChains(a, System.currentTimeMillis());
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
 
   /**
-   * We move the latest instance of the given network from the network class to our removed chains.
+   * Move the network with the given ID from our network chain to our removed chain if the flag is up. Otherwise, we
+   * perform the inverse action and move the network with the given ID from our removed chain to our network chain.
    *
-   * @param networkID Network ID of the network to "remove".
-   * @return True if the network was successfully "removed". False if the network does not exist.
+   * @param networkID    Network ID of the network to move.
+   * @param isUndoAction If true, perform the undo action. Otherwise, perform the redo action.
+   * @return True if a network was successfully transferred. False if the network does not exist.
    */
-  public boolean undoNetworkChange(long networkID) {
-    // We iterate through both lists backwards. Remove the first instance matching the given ID.
-    for (int i = networkChain.size() - 1; i >= 0; i--) {
-      if (networkChain.get(i).getNetworkId() == networkID) {
-        removedNetworkChain.add(networkChain.get(i));
-        removedTimestampChain.add(timestampChain.get(i));
+  private boolean moveBetweenChains(long networkID, boolean isUndoAction) {
+    ArrayList<ActivityNetwork> sourceChain, targetChain;
+    ArrayList<Long> sourceTimestampChain, targetTimestampChain;
 
-        networkChain.remove(i);
-        timestampChain.remove(i);
+    // Determine which is the source, and which is the target.
+    if (isUndoAction) {
+      sourceChain = networkChain;
+      targetChain = removedNetworkChain;
+      sourceTimestampChain = timestampChain;
+      targetTimestampChain = removedTimestampChain;
+    } else {
+      sourceChain = removedNetworkChain;
+      targetChain = networkChain;
+      sourceTimestampChain = removedTimestampChain;
+      targetTimestampChain = timestampChain;
+    }
+
+    // We iterate through both lists backwards. Remove the first instance matching the given ID.
+    for (int i = sourceChain.size() - 1; i >= 0; i--) {
+      if (sourceChain.get(i).getNetworkId() == networkID) {
+        targetChain.add(sourceChain.get(i));
+        targetTimestampChain.add(sourceTimestampChain.get(i));
+
+        sourceChain.remove(i);
+        sourceTimestampChain.remove(i);
         return true;
       }
     }
@@ -134,28 +184,24 @@ public class NetworkController {
   }
 
   /**
+   * We move the latest instance of the given network from the network class to our removed chains.
+   *
+   * @param networkID Network ID of the network to "remove".
+   * @return True if the network was successfully "removed". False if the network does not exist.
+   */
+  boolean undoNetworkChange(long networkID) {
+    return moveBetweenChains(networkID, true);
+  }
+
+  /**
    * We move the latest instance of the given network from our removed chains back to the main chains.
    *
    * @param networkID Network ID of the network to re-add.
    * @return True if a change occurred. False otherwise.
    */
-  public boolean redoNetworkChange(long networkID) {
-    // We iterate through both lists backwards. Add the first instance matching the given ID.
-    for (int i = removedNetworkChain.size() - 1; i >= 0; i--) {
-      if (removedNetworkChain.get(i).getNetworkId() == networkID) {
-        networkChain.add(removedNetworkChain.get(i));
-        timestampChain.add(removedTimestampChain.get(i));
-
-        removedNetworkChain.remove(i);
-        removedTimestampChain.remove(i);
-        return true;
-      }
-    }
-
-    // There exists no network in our removed chains with that ID.
-    return false;
+  boolean redoNetworkChange(long networkID) {
+    return moveBetweenChains(networkID, false);
   }
-
 
   /**
    * Access the latest instance of the given network from the network chain.
@@ -164,7 +210,7 @@ public class NetworkController {
    * @return An empty network if there exists no network with that ID. Otherwise, the latest instance of that network
    * matching the given ID.
    */
-  public ActivityNetwork retrieveNetwork(long networkID) {
+  ActivityNetwork retrieveNetwork(long networkID) {
     Collections.reverse(networkChain);
     for (ActivityNetwork a : networkChain) {
 
@@ -187,7 +233,7 @@ public class NetworkController {
    * @return -1 if there exists no network with the given ID. Otherwise, the timestamp corresponding to the last network
    * added.
    */
-  public long retrieveTimestamp(long networkID) {
+  long retrieveTimestamp(long networkID) {
     // We iterate through the network chain backwards, and return that same spot in the timestamp chain.
     for (int i = networkChain.size() - 1; i >= 0; i--) {
       if (networkChain.get(i).getNetworkId() == networkID) {
