@@ -1,7 +1,6 @@
 package com.ActivityNetwork;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 
 import org.junit.*;
@@ -81,10 +80,10 @@ public class ActivityNetworkTest {
     n.insertNode(new ActivityNode(7, "Working Head", "Head is working", 10, 15, 16));
     n.insertNode(new ActivityNode(3, "Working Legs", "Legs are working", 12, 60, 80));
 
-    assertEquals(true, n.setDependencies(7, new HashSet<>(Arrays.asList((long) 3))));
+    assertEquals(true, n.setDependencies(7, new HashSet<>(Collections.singletonList((long) 3))));
     assertEquals(true, n.retrieveNode(7).getDependencies().contains((long) 3));
 
-    assertEquals(false, n.setDependencies(7, new HashSet<>(Arrays.asList((long) 200))));
+    assertEquals(false, n.setDependencies(7, new HashSet<>(Collections.singletonList((long) 200))));
     assertEquals(false, n.retrieveNode(7).getDependencies().contains((long) 200));
   }
 
@@ -104,22 +103,22 @@ public class ActivityNetworkTest {
   /**
    * Verify that the nodes are sorted correctly after insertion and deletion. The history of the expected network is
    * below.
-   *
+   * <p>
    * (Nodes Without Dependencies)
    * t = 0: 9 ----------- 7 ----------- 3
-   *        (index 0) --- (index 1) ---(index 2)
-   *
+   * (index 0) --- (index 1) ---(index 2)
+   * <p>
    * .
    * .
    * .
-   *
+   * <p>
    * (After Setting Dependencies)
    * t = 2: 9 ----------> 3 ----------> 7
-   *        (index 0) --> (index 1) --> (index 2)
-   *
+   * (index 0) --> (index 1) --> (index 2)
+   * <p>
    * (Deletion of Node 3)
    * t = 3: 9 ----------> 7
-   *        (index 0) --> (index 1)
+   * (index 0) --> (index 1)
    */
   @Test
   public void testNodesSortedAfterModification() {
@@ -135,8 +134,8 @@ public class ActivityNetworkTest {
     assertEquals(3, n.getNodeList().get(2).getNodeId());
 
     // 7 depends on 3, 3 depends on 9, 9 is start node.
-    assertEquals(true, n.setDependencies(7, new HashSet<>(Arrays.asList((long) 3))));
-    assertEquals(true, n.setDependencies(3, new HashSet<>(Arrays.asList((long) 9))));
+    assertEquals(true, n.setDependencies(7, new HashSet<>(Collections.singletonList((long) 3))));
+    assertEquals(true, n.setDependencies(3, new HashSet<>(Collections.singletonList((long) 9))));
 
     // By setting our dependencies, we change the order (because it sorts inside here).
     assertEquals(9, n.getStartNodeId());

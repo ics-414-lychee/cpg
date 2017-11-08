@@ -1,23 +1,22 @@
-///
-/// This file contains the ActivityNetwork class, which represents a network of nodes in the Critical Path Method.
-///
-
 package com.ActivityNetwork;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * The ActivityNetwork class, which represents a network of nodes in the Critical Path Method.
+ */
 public class ActivityNetwork {
-  /// Unique identifier for this specific network.
+  /** Unique identifier for this specific network. */
   private long networkId;
 
-  /// Name of the network, assigned by user.
+  /** Name of the network, assigned by user. */
   private String networkName;
 
-  /// List of nodes that belong to this network.
+  /** List of nodes that belong to this network. */
   private ArrayList<ActivityNode> nodeList;
 
-  /// The deadline associated with network. Cannot be less than the minimal critical path sum (length).
+  /** The deadline associated with network. Cannot be less than the minimal critical path sum (length). */
   private long hoursDeadline;
 
   /**
@@ -62,10 +61,10 @@ public class ActivityNetwork {
   /**
    * Sort the dependencies given recursively.
    *
-   * @param node Current working node.
+   * @param node      Current working node.
    * @param dependArr Dependencies associated with this node.
-   * @param stack Stack to sort nodes into.
-   * @param original Original, unmodified network.
+   * @param stack     Stack to sort nodes into.
+   * @param original  Original, unmodified network.
    */
   private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> stack, ArrayList<ActivityNode> original) {
     // Check all dependencies in array.
@@ -123,7 +122,7 @@ public class ActivityNetwork {
    * @param nodeId ID of the node to determine existence of.
    * @return True if the node exists in the network. False otherwise.
    */
-  public boolean isNodeInNetwork(long nodeId) {
+  boolean isNodeInNetwork(long nodeId) {
     for (ActivityNode n : this.nodeList) {
       if (n.getNodeId() == nodeId) {
         return true;
@@ -138,7 +137,7 @@ public class ActivityNetwork {
    * @param node Node to insert into the node list network.
    * @return True if the insertion was successful. False otherwise.
    */
-  public boolean insertNode(ActivityNode node) {
+  boolean insertNode(ActivityNode node) {
     if (isNodeInNetwork(node.getNodeId())) {
       return false;
     }
@@ -156,7 +155,7 @@ public class ActivityNetwork {
    * @param nodeId ID of the node to delete.
    * @return True if the node existed in the network. False otherwise.
    */
-  public boolean deleteNode(final long nodeId) {
+  boolean deleteNode(final long nodeId) {
     if (!isNodeInNetwork(nodeId)) {
       return false;
     }
@@ -179,7 +178,7 @@ public class ActivityNetwork {
    * @param nodeId ID of the node to retrieve.
    * @return Node object corresponding to the given node ID. Otherwise, return an empty node with a node ID of -1.
    */
-  public ActivityNode retrieveNode(long nodeId) {
+  ActivityNode retrieveNode(long nodeId) {
     for (ActivityNode n : this.nodeList) {
       if (nodeId == n.getNodeId()) {
         return n;
@@ -193,11 +192,11 @@ public class ActivityNetwork {
   /**
    * Set the dependencies of the node with the given ID. Verify that each dependency exists in the network.
    *
-   * @param nodeId ID of the node to set the dependencies of.
+   * @param nodeId       ID of the node to set the dependencies of.
    * @param dependencies The new node's dependencies.
    * @return True if all dependencies in D exist in the network. False otherwise.
    */
-  public boolean setDependencies(long nodeId, Set<Long> dependencies) {
+  boolean setDependencies(long nodeId, Set<Long> dependencies) {
     // Verify that the dependencies actually exist.
     for (Long d : dependencies) {
       if (!isNodeInNetwork(d)) {
@@ -294,7 +293,7 @@ public class ActivityNetwork {
    */
   private ArrayList<ActivityNode> findPredecessors(long nodeId) {
     // TODO: finish predecessor search
-    return new ArrayList<>(Arrays.asList(new ActivityNode(0, "N", "N", 0, 0, 0)));
+    return new ArrayList<>(Collections.singletonList(new ActivityNode(0, "N", "N", 0, 0, 0)));
   }
 
   /**
@@ -305,7 +304,7 @@ public class ActivityNetwork {
    */
   private ArrayList<ActivityNode> findSuccessors(long nodeId) {
     // TODO: finish successor search
-    return new ArrayList<>(Arrays.asList(new ActivityNode(0, "N", "N", 0, 0, 0)));
+    return new ArrayList<>(Collections.singletonList(new ActivityNode(0, "N", "N", 0, 0, 0)));
   }
 
   /**
@@ -367,7 +366,7 @@ public class ActivityNetwork {
    *
    * @return An array of node IDs that pertain to this network, which represent the current critical path.
    */
-  public ArrayList<Long> computeCriticalPath() {
+  private ArrayList<Long> computeCriticalPath() {
     // TODO: finish critical path computation
     return new ArrayList<>(Arrays.asList((long) 0, (long) 1));
   }
@@ -377,7 +376,7 @@ public class ActivityNetwork {
    *
    * @return The network's starting node ID.
    */
-  public long getStartNodeId() {
+  long getStartNodeId() {
     return nodeList.get(0).getNodeId();
   }
 
@@ -386,7 +385,7 @@ public class ActivityNetwork {
    *
    * @return The network ID.
    */
-  public long getNetworkId() {
+  long getNetworkId() {
     return networkId;
   }
 
@@ -395,7 +394,7 @@ public class ActivityNetwork {
    *
    * @return The list of nodes, in it's current order.
    */
-  public ArrayList<ActivityNode> getNodeList() {
+  ArrayList<ActivityNode> getNodeList() {
     return nodeList;
   }
 
@@ -404,7 +403,7 @@ public class ActivityNetwork {
    *
    * @return The name assigned to this network.
    */
-  public String getNetworkName() {
+  String getNetworkName() {
     return networkName;
   }
 }

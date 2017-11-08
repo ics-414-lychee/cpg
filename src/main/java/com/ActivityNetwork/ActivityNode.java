@@ -1,35 +1,34 @@
-///
-/// This file contains the ActivityNode class, which represents activity nodes in the Critical Path Method.
-///
-
 package com.ActivityNetwork;
 
 import java.util.Set;
 import java.util.HashSet;
 
+/**
+ * The ActivityNode class, which represents an activity node in the Critical Path Method.
+ */
 public class ActivityNode {
-  /// Unique identifier for this specific node.
+  /** Unique identifier for this specific node. */
   private long nodeId;
 
-  /// User-assigned name corresponding to this activity.
+  /** User-assigned name corresponding to this activity. */
   private String name;
 
-  /// User-assigned description corresponding to this activity.
+  /** User-assigned description corresponding to this activity. */
   private String description;
 
-  /// User-assigned normal time in hours to activity completion.
+  /** User-assigned normal time in hours to activity completion. */
   private double normalTime;
 
-  /// User-assigned optimistic time in hours to activity completion.
+  /** User-assigned optimistic time in hours to activity completion. */
   private double optimisticTime;
 
-  /// User-assigned pessimistic time in hours to activity completion.
+  /** User-assigned pessimistic time in hours to activity completion. */
   private double pessimisticTime;
 
-  /// Computed expected time in hours to activity completion.
+  /** Computed expected time in hours to activity completion. */
   private double expectedTime;
 
-  /// Set of nodeIds associated that this activity depends on.
+  /** Set of nodeIds associated that this activity depends on. */
   private Set<Long> dependencies;
 
   /**
@@ -53,8 +52,8 @@ public class ActivityNode {
    * @param normalTime      Normal time to activity completion in hours.
    * @param pessimisticTime Pessimistic time to activity completion in hours.
    */
-  public ActivityNode(long nodeId, String name, String description, double optimisticTime, double normalTime,
-                      double pessimisticTime) {
+  ActivityNode(long nodeId, String name, String description, double optimisticTime, double normalTime,
+               double pessimisticTime) {
     this.nodeId = nodeId;
     this.name = name;
     this.description = description;
@@ -70,7 +69,7 @@ public class ActivityNode {
    *
    * @return The node's nodeId.
    */
-  public long getNodeId() {
+  long getNodeId() {
     return nodeId;
   }
 
@@ -79,7 +78,7 @@ public class ActivityNode {
    *
    * @return The node's name.
    */
-  public String getName() {
+  String getName() {
     return name;
   }
 
@@ -88,7 +87,7 @@ public class ActivityNode {
    *
    * @return The node's description.
    */
-  public String getDescription() {
+  String getDescription() {
     return description;
   }
 
@@ -97,7 +96,7 @@ public class ActivityNode {
    *
    * @return The node's dependencies.
    */
-  public Set<Long> getDependencies() {
+  Set<Long> getDependencies() {
     return dependencies;
   }
 
@@ -124,7 +123,7 @@ public class ActivityNode {
    *
    * @return All times associated with the node.
    */
-  public double[] getTimes() {
+  double[] getTimes() {
     return new double[]{optimisticTime, normalTime, pessimisticTime, expectedTime};
   }
 
@@ -133,7 +132,7 @@ public class ActivityNode {
    *
    * @param normalTime The new normal time for the node.
    */
-  public void setNormalTime(double normalTime) {
+  void setNormalTime(double normalTime) {
     this.normalTime = normalTime;
     this.expectedTime = computeExpectedTime();
   }
@@ -143,7 +142,7 @@ public class ActivityNode {
    *
    * @param optimisticTime The new optimistic time for the node.
    */
-  public void setOptimisticTime(double optimisticTime) {
+  void setOptimisticTime(double optimisticTime) {
     this.optimisticTime = optimisticTime;
     this.expectedTime = computeExpectedTime();
   }
@@ -153,7 +152,7 @@ public class ActivityNode {
    *
    * @param pessimisticTime The new pessimistic time for the node.
    */
-  public void setPessimisticTime(double pessimisticTime) {
+  void setPessimisticTime(double pessimisticTime) {
     this.pessimisticTime = pessimisticTime;
     this.expectedTime = computeExpectedTime();
   }
@@ -165,7 +164,7 @@ public class ActivityNode {
    * @param dependencies The new node's dependencies.
    * @return True if the dependencies were set. False otherwise.
    */
-  public boolean setDependencies(Set<Long> dependencies) {
+  boolean setDependencies(Set<Long> dependencies) {
     for (Long dependency : dependencies) {
       if (dependency == this.nodeId) {
         return false;
