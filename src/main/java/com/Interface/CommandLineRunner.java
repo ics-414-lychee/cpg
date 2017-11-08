@@ -5,6 +5,7 @@ import com.ActivityNetwork.NetworkStorage;
 
 import java.io.Console;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static java.lang.System.exit;
 
@@ -25,7 +26,7 @@ public class CommandLineRunner {
     }
 
     // We first present the welcome screen. User has access to command space: [Y, N]
-    String projectJSON = r.welcomeScreen(c);
+    ArrayList<String> tokenAndProjectJSON = r.welcomeScreen(c);
 
 //    boolean exitProgram;
 //    while (!exitProgram);
