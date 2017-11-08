@@ -1,24 +1,25 @@
-///
-/// This file contains the NetworkStorage class, which will interact with the backend to store and retrieve networks on
-/// disk.
-///
-
 package com.ActivityNetwork;
 
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.HttpResponse;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 
+/**
+ * The NetworkStorage class, which contains a set of methods to interact with the backend.
+ */
 @SuppressWarnings("unchecked")
 public final class NetworkStorage {
   /**
@@ -44,7 +45,7 @@ public final class NetworkStorage {
       node.put("PessimisticTime", times[2]);
 
       // We store our dependency list as a comma-separated list. Store the nodes in the main list.
-      node.put("DependencyNodeID", n.getDependencies().toString().replaceAll("\\[|\\]",""));
+      node.put("DependencyNodeID", n.getDependencies().toString().replaceAll("\\[|\\]", ""));
       nodeList.add(node);
     }
 
@@ -71,9 +72,8 @@ public final class NetworkStorage {
 
       // Obtain and iterate through our node list.
       JSONArray nodeList = (JSONArray) jsonNet.get("NodeList");
-      Iterator<String> nodeIterator = nodeList.iterator();
-      while (nodeIterator.hasNext()) {
-        JSONObject jsonNode = (JSONObject) jsonParser.parse(nodeIterator.next());
+      for (String aNodeList : (Iterable<String>) nodeList) {
+        JSONObject jsonNode = (JSONObject) jsonParser.parse(aNodeList);
 
         // Build our node without the dependencies.
         ActivityNode n = new ActivityNode((Long) jsonNode.get("NodeID"), (String) jsonNode.get("NodeName"),
@@ -98,62 +98,100 @@ public final class NetworkStorage {
   }
 
   /**
-   * Save the current network. The time at which this network was saved is returned.
+   * Map the given values 'v' to their similarity indexed attributes 'a' in JSON format. Returns the resulting string.
    *
-   * @param a Network to store.
-   * @return The time in milliseconds, corresponding to the time which the network was saved. 0 if the network was not
-   * successfully saved.
+   * @param v List of values that will map to attributes 'a'.
+   * @param a List of attributes that will map to 'v'.
+   * @return The resulting string of the a -> v map.
    */
-  public static long storeNetwork(ActivityNetwork a) {
-    return 0;
+  private static String mapValuesToAttributeJSON(ArrayList<String> v, ArrayList<String> a) {
+    assert v.size() == a.size();
+    JSONObject resultant = new JSONObject();
+
+    for (int i = 0; i < v.size(); i++) {
+      resultant.put(a.get(i), v.get(i));
+    }
+
+    return resultant.toString();
   }
 
   /**
-   * Load the network (as it was last saved) from the database given the network ID.
+   * Creates a network entry in the backend, associated with the given user and network name. The project ID of this
+   * new network is returned. Following the resource below:
+   * https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
    *
+   * @param token       Authentication token, obtained from a successful login.
+   * @param u           Username of the current user with the given token.
+   * @param networkName Desired name of the new network.
+   * @return An ID of 0 if there exists an error. Otherwise, the network ID that corresponds to this new network.
+   */
+  public static long createNetwork(String token, String u, String networkName) {
+    JSONParser jsonParser = new JSONParser();
+    String i = mapValuesToAttributeJSON(new ArrayList<>(Arrays.asList(token, u, networkName)),
+        new ArrayList<>(Arrays.asList("auth", "username", "networkname")));
+
+    try {
+      DefaultHttpClient httpClient = new DefaultHttpClient();
+
+      // TODO: replace with our own links and header for network creation.
+      HttpPost postRequest = new HttpPost("http://localhost:8080/RESTfulExample/json/product/get");
+      StringEntity input = new StringEntity(i);
+      input.setContentType("application/json");
+      postRequest.setEntity(input);
+
+      // POST our token, username, and desired name. Wait for our response.
+      HttpResponse response = httpClient.execute(postRequest);
+      if (response.getStatusLine().getStatusCode() != 201) {
+        throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+      }
+
+      // Read our response.
+      BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+      JSONObject jsonReturned = (JSONObject) jsonParser.parse(br);
+
+      // If we have an error, return a network ID of 0.
+      if ((Boolean) jsonReturned.get("Error")) {
+        httpClient.getConnectionManager().shutdown();
+        return 0;
+
+      } else {
+        // Otherwise, return the authentication token and the project JSON.
+        httpClient.getConnectionManager().shutdown();
+        return Long.getLong((String) jsonReturned.get("ProjectID"));
+
+      }
+    } catch (IOException | ParseException e) {
+      // An error occurred, return an ID of 0.
+      return 0;
+    }
+  }
+
+  /**
+   * Save the current network. If this action is successful, return true. Following the resource below:
+   * https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
+   *
+   * @param token Authentication token, obtained from a successful login.
+   * @param u     Username of the current user with the given token.
+   * @param a     Network to store.
+   * @return True if the action was successful. False otherwise.
+   */
+  public static boolean storeNetwork(String token, String u, ActivityNetwork a) {
+    // TODO: work on network storage with backend
+    return true;
+  }
+
+  /**
+   * Load the network (as it was last saved) from the database given the network ID. Following the resource below:
+   * https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
+   *
+   * @param token     Authentication token, obtained from a successful login.
+   * @param u         Username of the current user with the given token.
    * @param networkId ID of the network to retrieve.
    * @return An ActivityNetwork instance, corresponding to its last saved instance. An empty network if the network
    * could not be successfully loaded.
    */
-  public static ActivityNetwork retrieveNetwork(long networkId) {
-    try {
-      DefaultHttpClient httpClient = new DefaultHttpClient();
-
-      // TODO: modify these for our own stuff - https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
-      HttpGet getRequest = new HttpGet(
-          "http://localhost:8080/RESTfulExample/json/product/get");
-      getRequest.addHeader("accept", "application/json");
-
-      HttpResponse response = httpClient.execute(getRequest);
-
-      return new ActivityNetwork(0, "");
-    }
-    catch (IOException e){
-      return new ActivityNetwork(0, "");
-    }
-  }
-
-  /**
-   * Creates an account using the given login information.
-   *
-   * @param u Username of the user to create an account for.
-   * @param p Password of the user to create an account for.
-   * @return True if account creation was successful. False otherwise.
-   */
-  public static boolean createAccount (String u, String p) {
-    // TODO: finish account creation
-    return true;
-  }
-
-  /**
-   * Checks if the password matches with the given username.
-   *
-   * @param u Username of the user to login with.
-   * @param p Password of the user to login with.
-   * @return True if the password and username match (i.e. login was successful). False otherwise.
-   */
-  public static boolean verifyLoginInfo (String u, String p) {
-    // TODO: finish login, is this the only place we can get our project IDs and names??
-    return true;
+  public static ActivityNetwork retrieveNetwork(String token, String u, long networkId) {
+    // TODO: work on network retrieval with backend
+    return new ActivityNetwork(0, "");
   }
 }
