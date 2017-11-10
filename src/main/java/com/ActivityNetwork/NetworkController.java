@@ -131,7 +131,7 @@ public class NetworkController {
    * @param a ActivityNetwork instance to add.
    * @return True if the modification was successful. False if there exists no network here with the given network ID.
    */
-  boolean modifyNetwork(ActivityNetwork a) {
+  public boolean modifyNetwork(ActivityNetwork a) {
     removedNetworkChain.clear();
     removedNetworkChain.clear();
 
@@ -190,7 +190,7 @@ public class NetworkController {
    * @param networkID Network ID of the network to "remove".
    * @return True if the network was successfully "removed". False if the network does not exist.
    */
-  boolean undoNetworkChange(long networkID) {
+  public boolean undoNetworkChange(long networkID) {
     return moveBetweenChains(networkID, true);
   }
 
@@ -200,7 +200,7 @@ public class NetworkController {
    * @param networkID Network ID of the network to re-add.
    * @return True if a change occurred. False otherwise.
    */
-  boolean redoNetworkChange(long networkID) {
+  public boolean redoNetworkChange(long networkID) {
     return moveBetweenChains(networkID, false);
   }
 
@@ -211,7 +211,7 @@ public class NetworkController {
    * @return An empty network if there exists no network with that ID. Otherwise, the latest instance of that network
    * matching the given ID.
    */
-  ActivityNetwork retrieveNetwork(long networkID) {
+  public ActivityNetwork retrieveNetwork(long networkID) {
     Collections.reverse(networkChain);
     for (ActivityNetwork a : networkChain) {
 

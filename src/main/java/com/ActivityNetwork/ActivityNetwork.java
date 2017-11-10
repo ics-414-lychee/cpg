@@ -117,6 +117,22 @@ public class ActivityNetwork {
   }
 
   /**
+   * Get the node ID associated with the node of the given name.
+   *
+   * @param nodeName Name of the node to search for.
+   * @return -1 if a node does not exist with that name. Otherwise, the node ID of the node with the given name.
+   */
+  public long nodeIdFromName(String nodeName) {
+    for (ActivityNode n : this.nodeList) {
+      if (n.getName().equals(nodeName)) {
+        return n.getNodeId();
+      }
+    }
+
+    return -1;
+  }
+
+  /**
    * Check if a given node is in the network using the node's ID.
    *
    * @param nodeId ID of the node to determine existence of.
@@ -350,7 +366,7 @@ public class ActivityNetwork {
    * @param nodeId ID of the node to compute the free slack for.
    * @return The free slack of the node with the given ID.
    */
-  public double computeFreeSlack(int nodeId) {
+  public double computeFreeSlack(long nodeId) {
     if (!isNodeInNetwork(nodeId)) {
       throw new java.lang.RuntimeException("Node does not exist in network.");
     } else {
@@ -366,7 +382,7 @@ public class ActivityNetwork {
    *
    * @return An array of node IDs that pertain to this network, which represent the current critical path.
    */
-  private ArrayList<Long> computeCriticalPath() {
+  public ArrayList<Long> computeCriticalPath() {
     // TODO: finish critical path computation
     return new ArrayList<>(Arrays.asList((long) 0, (long) 1));
   }
@@ -394,7 +410,7 @@ public class ActivityNetwork {
    *
    * @return The list of nodes, in it's current order.
    */
-  ArrayList<ActivityNode> getNodeList() {
+  public ArrayList<ActivityNode> getNodeList() {
     return nodeList;
   }
 
