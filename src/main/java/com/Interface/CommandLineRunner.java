@@ -1,7 +1,6 @@
 package com.Interface;
 
 import com.ActivityNetwork.NetworkController;
-import com.ActivityNetwork.NetworkStorage;
 
 import java.io.Console;
 import java.io.IOException;
@@ -25,16 +24,25 @@ public class CommandLineRunner {
       exit(1);
     }
 
-    // We first present the welcome screen. User has access to command space: [Y, N]
-    ArrayList<String> tokenAndProjectJSON = r.welcomeScreen(c);
+    boolean desiredExit = false;
+    while (!desiredExit) {
 
-//    boolean exitProgram;
-//    while (!exitProgram);
+      // We first present the welcome screen. User has access to command space: [Y, N]
+      ArrayList<String> userInfo = r.welcomeScreen(c);
+      assert !userInfo.isEmpty();
+
       // Once passed, the user has access to the projects screen, and command space: [add, delete, edit, exit].
-
-
+      NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1));
+      long desiredNetworkID = r.projectOverviewScreen(c, nc, userInfo.get(2));
 
       // We are now in the single project screen. User has access to commands: [add, edit, delete, exit].
+      if (desiredNetworkID != 0) {
+        r.projectSpecificScreen(c, nc, desiredNetworkID);
 
+      } else {
+        desiredExit = true;
+
+      }
+    }
   }
 }
