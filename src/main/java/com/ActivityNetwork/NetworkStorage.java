@@ -181,6 +181,20 @@ public final class NetworkStorage {
   }
 
   /**
+   * Remove the network from the database, given the network ID. Following the resource below:
+   * https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
+   *
+   * @param token     Authentication token, obtained from a successful login.
+   * @param u         Username of the current user with the given token.
+   * @param networkId ID of the network to retrieve.
+   * @return True if the network was deleted. False otherwise.
+   */
+  public static boolean deleteNetwork(String token, String u, long networkId) {
+    // TODO: work on network removal
+    return true;
+  }
+
+  /**
    * Load the network (as it was last saved) from the database given the network ID. Following the resource below:
    * https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
    *

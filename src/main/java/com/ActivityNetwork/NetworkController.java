@@ -2,6 +2,7 @@ package com.ActivityNetwork;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * The NetworkController class, which controls and manages various ActivityNetwork instances.
@@ -111,7 +112,7 @@ public class NetworkController {
    * @param networkName Name to attach to the network.
    * @return The generated network ID.
    */
-  long createNetwork(String networkName) {
+  public long createNetwork(String networkName) {
     long networkID = NetworkStorage.createNetwork(token, u, networkName);
 
     ActivityNetwork a = new ActivityNetwork(networkID, networkName);
@@ -224,6 +225,31 @@ public class NetworkController {
     // Otherwise, the network does not exist. Return the list to normal.
     Collections.reverse(networkChain);
     return new ActivityNetwork(0, "");
+  }
+
+  /**
+   * Remove all instances of that network from our chains, and remove it from database as well. This action is
+   * irreversible! We are now unable to "redo", so clear our removed chains.
+   *
+   * @param networkID ID of the network to remove.
+   * @return True  if the network was deleted from the backend and our chains. False if the network does not exist.
+   */
+  public boolean deleteNetwork(long networkID) {
+    boolean removedFromChains = false;
+
+    for (int i = 0; i < networkChain.size(); i++) {
+      if (networkChain.get(i).getNetworkId() == networkID) {
+        networkChain.remove(i);
+        timestampChain.remove(i);
+        removedFromChains = true;
+      }
+    }
+
+    removedNetworkChain.clear();
+    removedTimestampChain.clear();
+
+    // We must remove from the chains, and delete the network from the database.
+    return removedFromChains && NetworkStorage.deleteNetwork(token, u, networkID);
   }
 
   /**

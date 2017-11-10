@@ -135,8 +135,8 @@ public final class UserAccount {
    *
    * @param u Username of the user to login with.
    * @param p Password of the user to login with.
-   * @return If the login is successful, a two element array of the authentication token, and the JSON array of project
-   * IDs and names associated with the user. Otherwise, an empty array.
+   * @return If the login is successful, a three element array of the username, the authentication token, and the JSON
+   * array of project IDs and names associated with the user. Otherwise, an empty array.
    */
   public static ArrayList<String> verifyLoginInfo(String u, String p) {
     JSONParser jsonParser = new JSONParser();
@@ -167,9 +167,9 @@ public final class UserAccount {
         return new ArrayList<>();
 
       } else {
-        // Otherwise, return the authentication token and the project JSON.
+        // Otherwise, return the username, authentication token and the project JSON.
         httpClient.getConnectionManager().shutdown();
-        return new ArrayList<>(Arrays.asList((String) errorMessage.get("AuthToken"),
+        return new ArrayList<>(Arrays.asList(u, (String) errorMessage.get("AuthToken"),
             (String) jsonReturned.get("ProjectJSON")));
       }
     } catch (ParseException | IOException e) {
