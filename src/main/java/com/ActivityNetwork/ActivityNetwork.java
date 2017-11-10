@@ -39,60 +39,58 @@ private long hoursDeadline;
  */
 
 private void sortNodes(ArrayList<ActivityNode> listOfNodes) {
-
 	Stack<Long> stack = new Stack<>();//stack to deposit id's
+	ArrayList<ActivityNode> sortedList = new ArrayList<>(nodeList);
 	ArrayList<ActivityNode> original = new ArrayList<>(nodeList);//using an original list to check if node has already been pushed
-
 	for (int i=0; i<listOfNodes.size(); i++) {  
+		ActivityNode node = listOfNodes.get(i);
 		
-		  ActivityNode node = listOfNodes.get(i);
-		  
 		  if(!original.contains(node)) {
 			  //dibt do nothing
 		  }
-		  else if(node.getDependencies()==null) {
+		  else if(node.getDependencies().size()==0) {
 			  stack.push(node.getNodeId());
 			  original.remove(node);
 		  }
 		  else {
 			  // make dependency array
 			  Set<Long> depend = node.getDependencies();
-			  Long[] array = depend.toArray(new Long[depend.size()]);
+			  Long[] depArray = depend.toArray(new Long[depend.size()]);
 			  // call topSort on current node
-			  topSort(node,array,stack,original);
+			  topSort(node,depArray,stack,original);
 		  }
 	}
-	
-	for(int elemeno=1;elemeno<stack.size();elemeno++) {
-
+	int siz=stack.size();
+	for(int elemeno=1;elemeno<=siz;elemeno++) {
 		Long nid = stack.pop();
 		ActivityNode noNoNode = retrieveNode(nid);
-		nodeList.add(elemeno, noNoNode);
+		sortedList.remove(siz-elemeno);
+		sortedList.add(siz-elemeno, noNoNode);
 	}
+	nodeList = sortedList;
 }
-
 //sorts dependencies
-private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> stack, ArrayList<ActivityNode> original) {
+private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> topStack, ArrayList<ActivityNode> original) {
 	// check all dependencies in array
 	for(int j=0;j<dependArr.length;j++) {
 		// create/get new node from dependency list
 		Long newId = dependArr[j];
 		ActivityNode newNode = retrieveNode(newId);
 		
-		
-		if (newNode.getDependencies()!=null && original.contains(newNode)) {
+		if (newNode.getDependencies().size()!=0 && original.contains(newNode)) {
 			Set<Long> newDepend = newNode.getDependencies();
 			Long[] newDepArr = newDepend.toArray(new Long[newDepend.size()]);
-
-			topSort(newNode,newDepArr,stack,original);
+			topSort(newNode,newDepArr,topStack,original);
 		}
 		else { // newNode doesn't have dependencies
 			if(original.contains(newNode)) { // new node hasn't been pushed yet
-				stack.push(newNode.getNodeId());
+				topStack.push(newNode.getNodeId());
 				original.remove(newNode);
 			}
 		}  
 	}
+	topStack.push(node.getNodeId());
+	original.remove(node);
 }
 
 
