@@ -17,76 +17,75 @@ public class ActivityNetwork {
   private ArrayList<ActivityNode> nodeList;
 
   /** The deadline associated with network. Cannot be less than the minimal critical path sum (length). */
-  private long hoursDeadline;
+  private double hoursDeadline;
 
   /**
    * Sort the current list of nodes by order of dependencies (topological sort).
    *
    * @param listOfNodes List of nodes to sort.
    */
-private void sortNodes(ArrayList<ActivityNode> listOfNodes) {
-	Stack<Long> stack = new Stack<>();//stack to deposit id's
-	ArrayList<ActivityNode> sortedList = new ArrayList<>(nodeList);
-	ArrayList<ActivityNode> original = new ArrayList<>(nodeList);//using an original list to check if node has already been pushed
-	for (int i=0; i<listOfNodes.size(); i++) {  
-		ActivityNode node = listOfNodes.get(i);
-		
-		  if(!original.contains(node)) {
-			  //triggers if node has already been pushed
-		  }
-		  else if(node.getDependencies().size()==0) {
-			  stack.push(node.getNodeId());
-			  original.remove(node);
-		  }
-		  else {
-			  // make dependency array
-			  Set<Long> depend = node.getDependencies();
-			  Long[] depArray = depend.toArray(new Long[depend.size()]);
-			  // call topSort on current node
-			  topSort(node,depArray,stack,original);
-		  }
-	}
-	int siz=stack.size();
-	for(int elemeno=1;elemeno<=siz;elemeno++) {
-		Long nid = stack.pop();
-		ActivityNode noNoNode = retrieveNode(nid);
-		sortedList.remove(siz-elemeno);
-		sortedList.add(siz-elemeno, noNoNode);
-	}
-	nodeList = sortedList;
-}
+  private void sortNodes(ArrayList<ActivityNode> listOfNodes) {
+    Stack<Long> stack = new Stack<>();   // Stack to deposit id's.
+    ArrayList<ActivityNode> sortedList = new ArrayList<>(nodeList);
+
+    // Using an original list to check if node has already been pushed.
+    ArrayList<ActivityNode> original = new ArrayList<>(nodeList);
+    for (ActivityNode node : listOfNodes) {
+
+      if (!original.contains(node)) {
+        // Triggers if node has already been pushed.
+      } else if (node.getDependencies().size() == 0) {
+        stack.push(node.getNodeId());
+        original.remove(node);
+      } else {
+        // Make dependency array.
+        Set<Long> depend = node.getDependencies();
+        Long[] depArray = depend.toArray(new Long[depend.size()]);
+
+        // Call topSort on current node.
+        topSort(node, depArray, stack, original);
+      }
+    }
+    int siz = stack.size();
+    for (int elemeno = 1; elemeno <= siz; elemeno++) {
+      Long nid = stack.pop();
+      ActivityNode noNoNode = retrieveNodeReference(nid);
+      sortedList.remove(siz - elemeno);
+      sortedList.add(siz - elemeno, noNoNode);
+    }
+    nodeList = sortedList;
+  }
 
   /**
    * Sort the dependencies given recursively.
    *
    * @param node      Current working node.
    * @param dependArr Dependencies associated with this node.
-   * @param topStack     Stack to sort nodes into.
+   * @param topStack  Stack to sort nodes into.
    * @param original  Original, unmodified network.
    */
-private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> topStack, ArrayList<ActivityNode> original) {
-	// check all dependencies in array
-	for(int j=0;j<dependArr.length;j++) {
-		// create/get new node from dependency list
-		Long newId = dependArr[j];
-		ActivityNode newNode = retrieveNode(newId);
-		
-		if (newNode.getDependencies().size()!=0 && original.contains(newNode)) {
-			Set<Long> newDepend = newNode.getDependencies();
-			Long[] newDepArr = newDepend.toArray(new Long[newDepend.size()]);
-			topSort(newNode,newDepArr,topStack,original);
-		}
-		else { // newNode doesn't have dependencies
-			if(original.contains(newNode)) { // new node hasn't been pushed yet
-				topStack.push(newNode.getNodeId());
-				original.remove(newNode);
-			}
-		}  
-	}
-	topStack.push(node.getNodeId());
-	original.remove(node);
-}
+  private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> topStack, ArrayList<ActivityNode> original) {
+    // Check all dependencies in array.
+    for (Long newId : dependArr) {
+      // Create/get new node from dependency list.
+      ActivityNode newNode = retrieveNodeReference(newId);
 
+      if (newNode.getDependencies().size() != 0 && original.contains(newNode)) {
+        Set<Long> newDepend = newNode.getDependencies();
+        Long[] newDepArr = newDepend.toArray(new Long[newDepend.size()]);
+        topSort(newNode, newDepArr, topStack, original);
+      } else {
+        // newNode doesn't have dependencies.
+        if (original.contains(newNode)) {
+          // New node hasn't been pushed yet.
+          topStack.push(newNode.getNodeId());
+          original.remove(newNode);
+        }
+      }
+    }
+    topStack.push(node.getNodeId());
+    original.remove(node);
+  }
 
   /**
    * Constructor. Assigns the network ID, and the starting values for node list, start node ID, and deadline.
@@ -101,8 +100,24 @@ private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> topStack, 
   }
 
   /**
+   * Return the network as a string of node names.
+   *
+   * @return String of the node names.
+   */
+  @Override
+  public String toString() {
+    StringBuilder networkString = new StringBuilder("| ");
+
+    for (ActivityNode n : nodeList) {
+      networkString.append(n.getName()).append(" | ");
+    }
+    return networkString.toString();
+  }
+
+  /**
    * Cloning method, using for creating a new instance of the current network.
    */
+  @Override
   public ActivityNetwork clone() {
     ActivityNetwork a = new ActivityNetwork(this.getNetworkId(), this.getNetworkName());
     for (ActivityNode n : this.getNodeList()) {
@@ -111,6 +126,54 @@ private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> topStack, 
 
     a.hoursDeadline = this.hoursDeadline;
     return a;
+  }
+
+  /**
+   * Check if a given node is in the network using the node's ID.
+   *
+   * @param nodeId ID of the node to determine existence of.
+   * @return True if the node exists in the network. False otherwise.
+   */
+  boolean isNodeInNetwork(long nodeId) {
+    for (ActivityNode n : this.nodeList) {
+      if (n.getNodeId() == nodeId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Check if a given node is in the network using the node's name.
+   *
+   * @param nodeName Name of the node to determine existence of.
+   * @return True if the node exists in the network. False otherwise.
+   */
+  public boolean isNodeInNetwork(String nodeName) {
+    for (ActivityNode n : this.nodeList) {
+      if (n.getName().equals(nodeName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Insert the given node into node list. Checks for node ID andm name uniqueness.
+   *
+   * @param node Node to insert into the node list network.
+   * @return True if the insertion was successful. False otherwise.
+   */
+  public boolean insertNode(ActivityNode node) {
+    if (isNodeInNetwork(node.getNodeId()) || isNodeInNetwork(node.getName())) {
+      return false;
+    }
+
+    // If node is unique, insert and sort the list.
+    nodeList.add(node);
+    sortNodes(nodeList);
+
+    return true;
   }
 
   /**
@@ -130,45 +193,12 @@ private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> topStack, 
   }
 
   /**
-   * Check if a given node is in the network using the node's ID.
-   *
-   * @param nodeId ID of the node to determine existence of.
-   * @return True if the node exists in the network. False otherwise.
-   */
-  boolean isNodeInNetwork(long nodeId) {
-    for (ActivityNode n : this.nodeList) {
-      if (n.getNodeId() == nodeId) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Insert the given node into node list. Checks for node ID uniqueness.
-   *
-   * @param node Node to insert into the node list network.
-   * @return True if the insertion was successful. False otherwise.
-   */
-  boolean insertNode(ActivityNode node) {
-    if (isNodeInNetwork(node.getNodeId())) {
-      return false;
-    }
-
-    // If node is unique, insert and sort the list.
-    nodeList.add(node);
-    sortNodes(nodeList);
-
-    return true;
-  }
-
-  /**
    * Delete the node in the network with the given node ID. Checks for node existence.
    *
    * @param nodeId ID of the node to delete.
    * @return True if the node existed in the network. False otherwise.
    */
-  boolean deleteNode(final long nodeId) {
+  public boolean deleteNode(final long nodeId) {
     if (!isNodeInNetwork(nodeId)) {
       return false;
     }
@@ -186,12 +216,29 @@ private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> topStack, 
   }
 
   /**
-   * Return the node given the node ID. Checks for node existence.
+   * Return a **clone** of the node given the node ID. Checks for node existence.
    *
    * @param nodeId ID of the node to retrieve.
    * @return Node object corresponding to the given node ID. Otherwise, return an empty node with a node ID of -1.
    */
-  ActivityNode retrieveNode(long nodeId) {
+  public ActivityNode retrieveNode(long nodeId) {
+    for (ActivityNode n : this.nodeList) {
+      if (nodeId == n.getNodeId()) {
+        return n.clone();
+      }
+    }
+
+    // Node is not in list. Return an empty node with blank fields and zero fields.
+    return new ActivityNode(-1, "", "", 0, 0, 0);
+  }
+
+  /**
+   * Return a reference of the node given the node ID. Checks for node existence.
+   *
+   * @param nodeId ID of the node to retrieve.
+   * @return Node object corresponding to the given node ID. Otherwise, return an empty node with a node ID of -1.
+   */
+  private ActivityNode retrieveNodeReference(long nodeId) {
     for (ActivityNode n : this.nodeList) {
       if (nodeId == n.getNodeId()) {
         return n;
@@ -218,7 +265,7 @@ private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> topStack, 
     }
 
     // If they do exist, set the given node's dependencies. Resort our node list.
-    retrieveNode(nodeId).setDependencies(dependencies);
+    retrieveNodeReference(nodeId).setDependencies(dependencies);
     sortNodes(nodeList);
     return true;
   }
@@ -230,7 +277,7 @@ private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> topStack, 
    */
   private double computeCriticalPathTime() {
     List<Double> eta = computeCriticalPath().stream().map(n_i ->
-        retrieveNode(n_i).getTimes()[3]).collect(Collectors.toList());
+        retrieveNodeReference(n_i).getTimes()[3]).collect(Collectors.toList());
 
     return eta.stream().reduce((double) 0, (n_1, n_2) -> (n_1 + n_2));
   }
@@ -241,7 +288,7 @@ private void topSort(ActivityNode node, Long[] dependArr, Stack<Long> topStack, 
    * @param hoursDeadline Desired deadline in hours.
    * @return True if hoursDeadline was changed. False if the value is less than the sum of the critical path times.
    */
-  public boolean setHoursDeadline(long hoursDeadline) {
+  public boolean setHoursDeadline(double hoursDeadline) {
     if (hoursDeadline < computeCriticalPathTime()) {
       return false;
     } else {
