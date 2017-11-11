@@ -52,8 +52,8 @@ public class ActivityNode {
    * @param normalTime      Normal time to activity completion in hours.
    * @param pessimisticTime Pessimistic time to activity completion in hours.
    */
-  ActivityNode(long nodeId, String name, String description, double optimisticTime, double normalTime,
-               double pessimisticTime) {
+  public ActivityNode(long nodeId, String name, String description, double optimisticTime, double normalTime,
+                      double pessimisticTime) {
     this.nodeId = nodeId;
     this.name = name;
     this.description = description;
@@ -65,11 +65,23 @@ public class ActivityNode {
   }
 
   /**
+   * Cloning method, using for creating a new instance of the current node.
+   */
+  @Override
+  public ActivityNode clone() {
+    ActivityNode n = new ActivityNode(this.getNodeId(), this.getName(), this.getDescription(),
+        this.getTimes()[0], this.getTimes()[1], this.getTimes()[2]);
+    n.setDependencies(this.dependencies);
+
+    return n;
+  }
+
+  /**
    * Accessor method for node's ID.
    *
    * @return The node's nodeId.
    */
-  long getNodeId() {
+  public long getNodeId() {
     return nodeId;
   }
 
@@ -78,7 +90,7 @@ public class ActivityNode {
    *
    * @return The node's name.
    */
-  String getName() {
+  public String getName() {
     return name;
   }
 
@@ -87,7 +99,7 @@ public class ActivityNode {
    *
    * @return The node's description.
    */
-  String getDescription() {
+  public String getDescription() {
     return description;
   }
 
@@ -123,7 +135,7 @@ public class ActivityNode {
    *
    * @return All times associated with the node.
    */
-  double[] getTimes() {
+  public double[] getTimes() {
     return new double[]{optimisticTime, normalTime, pessimisticTime, expectedTime};
   }
 
@@ -132,7 +144,7 @@ public class ActivityNode {
    *
    * @param normalTime The new normal time for the node.
    */
-  void setNormalTime(double normalTime) {
+  public void setNormalTime(double normalTime) {
     this.normalTime = normalTime;
     this.expectedTime = computeExpectedTime();
   }
@@ -142,7 +154,7 @@ public class ActivityNode {
    *
    * @param optimisticTime The new optimistic time for the node.
    */
-  void setOptimisticTime(double optimisticTime) {
+  public void setOptimisticTime(double optimisticTime) {
     this.optimisticTime = optimisticTime;
     this.expectedTime = computeExpectedTime();
   }
@@ -152,7 +164,7 @@ public class ActivityNode {
    *
    * @param pessimisticTime The new pessimistic time for the node.
    */
-  void setPessimisticTime(double pessimisticTime) {
+  public void setPessimisticTime(double pessimisticTime) {
     this.pessimisticTime = pessimisticTime;
     this.expectedTime = computeExpectedTime();
   }
@@ -164,7 +176,7 @@ public class ActivityNode {
    * @param dependencies The new node's dependencies.
    * @return True if the dependencies were set. False otherwise.
    */
-  boolean setDependencies(Set<Long> dependencies) {
+  public boolean setDependencies(Set<Long> dependencies) {
     for (Long dependency : dependencies) {
       if (dependency == this.nodeId) {
         return false;
