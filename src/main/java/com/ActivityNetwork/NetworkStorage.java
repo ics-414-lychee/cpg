@@ -1,5 +1,6 @@
 package com.ActivityNetwork;
 
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.json.simple.JSONArray;
@@ -116,6 +117,37 @@ public final class NetworkStorage {
   }
 
   /**
+   * Perform a POST with the open HTTP client and input, and return the response.
+   *
+   * @param jsonParser Open JSON Parser instance.
+   * @param h          Open HTTP client, used to POST our input.
+   * @param i          Input JSON string to POST.
+   * @return A JSON object containing the response of our POST.
+   */
+  private static JSONObject postAndGetResponse(JSONParser jsonParser, HttpClient h, String i) {
+    try {
+      // TODO: replace with our own links and header for network creation.
+      HttpPost postRequest = new HttpPost("http://localhost:8080/RESTfulExample/json/product/get");
+      StringEntity input = new StringEntity(i);
+      input.setContentType("application/json");
+      postRequest.setEntity(input);
+
+      // POST our token, username, and desired name. Wait for our response.
+      HttpResponse response = h.execute(postRequest);
+      if (response.getStatusLine().getStatusCode() != 201) {
+        throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+      }
+
+      // Read our response.
+      BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+      return (JSONObject) jsonParser.parse(br);
+    } catch (IOException | ParseException e) {
+      // TODO: decide what happens here.
+      return new JSONObject();
+    }
+  }
+
+  /**
    * Creates a network entry in the backend, associated with the given user and network name. The project ID of this
    * new network is returned. Following the resource below:
    * https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
@@ -125,45 +157,17 @@ public final class NetworkStorage {
    * @param networkName Desired name of the new network.
    * @return An ID of 0 if there exists an error. Otherwise, the network ID that corresponds to this new network.
    */
-  public static long createNetwork(String token, String u, String networkName) {
+  static long createNetwork(String token, String u, String networkName) {
     JSONParser jsonParser = new JSONParser();
     String i = mapValuesToAttributeJSON(new ArrayList<>(Arrays.asList(token, u, networkName)),
         new ArrayList<>(Arrays.asList("auth", "username", "networkname")));
 
-    try {
-      DefaultHttpClient httpClient = new DefaultHttpClient();
+    DefaultHttpClient httpClient = new DefaultHttpClient();
+    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i);
+    httpClient.getConnectionManager().shutdown();
 
-      // TODO: replace with our own links and header for network creation.
-      HttpPost postRequest = new HttpPost("http://localhost:8080/RESTfulExample/json/product/get");
-      StringEntity input = new StringEntity(i);
-      input.setContentType("application/json");
-      postRequest.setEntity(input);
-
-      // POST our token, username, and desired name. Wait for our response.
-      HttpResponse response = httpClient.execute(postRequest);
-      if (response.getStatusLine().getStatusCode() != 201) {
-        throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
-      }
-
-      // Read our response.
-      BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
-      JSONObject jsonReturned = (JSONObject) jsonParser.parse(br);
-
-      // If we have an error, return a network ID of 0.
-      if ((Boolean) jsonReturned.get("Error")) {
-        httpClient.getConnectionManager().shutdown();
-        return 0;
-
-      } else {
-        // Otherwise, return the authentication token and the project JSON.
-        httpClient.getConnectionManager().shutdown();
-        return Long.getLong((String) jsonReturned.get("ProjectID"));
-
-      }
-    } catch (IOException | ParseException e) {
-      // An error occurred, return an ID of 0.
-      return 0;
-    }
+    // If we have an error, return a network ID of 0.
+    return (Boolean) jsonReturned.get("Error") ? 0 : Long.getLong((String) jsonReturned.get("ProjectID"));
   }
 
   /**
@@ -176,8 +180,17 @@ public final class NetworkStorage {
    * @return True if the action was successful. False otherwise.
    */
   public static boolean storeNetwork(String token, String u, ActivityNetwork a) {
-    // TODO: work on network storage with backend
-    return true;
+    JSONParser jsonParser = new JSONParser();
+    String i = mapValuesToAttributeJSON(new ArrayList<>(Arrays.asList(token, u, exportNetworkAsJSON(a))),
+        new ArrayList<>(Arrays.asList("auth", "username", "json")));
+
+    DefaultHttpClient httpClient = new DefaultHttpClient();
+    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i);
+    httpClient.getConnectionManager().shutdown();
+
+    // If we have an error, indicate that we were not able to save the network.
+    return !((Boolean) jsonReturned.get("Error"));
+
   }
 
   /**
@@ -189,9 +202,17 @@ public final class NetworkStorage {
    * @param networkId ID of the network to retrieve.
    * @return True if the network was deleted. False otherwise.
    */
-  public static boolean deleteNetwork(String token, String u, long networkId) {
-    // TODO: work on network removal
-    return true;
+  static boolean deleteNetwork(String token, String u, long networkId) {
+    JSONParser jsonParser = new JSONParser();
+    String i = mapValuesToAttributeJSON(new ArrayList<>(Arrays.asList(token, u, Long.toString(networkId))),
+        new ArrayList<>(Arrays.asList("auth", "username", "networkid")));
+
+    DefaultHttpClient httpClient = new DefaultHttpClient();
+    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i);
+    httpClient.getConnectionManager().shutdown();
+
+    // If we have an error, indicate that we were not able to delete the network.
+    return !((Boolean) jsonReturned.get("Error"));
   }
 
   /**
@@ -204,8 +225,17 @@ public final class NetworkStorage {
    * @return An ActivityNetwork instance, corresponding to its last saved instance. An empty network if the network
    * could not be successfully loaded.
    */
-  public static ActivityNetwork retrieveNetwork(String token, String u, long networkId) {
-    // TODO: work on network retrieval with backend
-    return new ActivityNetwork(0, "");
+  static ActivityNetwork retrieveNetwork(String token, String u, long networkId) {
+    JSONParser jsonParser = new JSONParser();
+    String i = mapValuesToAttributeJSON(new ArrayList<>(Arrays.asList(token, u, Long.toString(networkId))),
+        new ArrayList<>(Arrays.asList("auth", "username", "networkid")));
+
+    DefaultHttpClient httpClient = new DefaultHttpClient();
+    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i);
+    httpClient.getConnectionManager().shutdown();
+
+    // If we have an error, indicate that we were not able to retrieve the network.
+    return (Boolean) jsonReturned.get("Error") ? new ActivityNetwork(0, "Bad") :
+        importNetworkAsJSON((String) jsonReturned.get("NodesJSON"));
   }
 }
