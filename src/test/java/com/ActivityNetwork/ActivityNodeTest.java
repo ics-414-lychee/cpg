@@ -9,14 +9,39 @@ import org.junit.*;
 import static org.junit.Assert.*;
 
 public class ActivityNodeTest {
+  private static ActivityNode testNode;
+
+  /**
+   * Create our test node, to be updated before each test.
+   */
+  @Before
+  public void createNode() {
+    testNode = new ActivityNode(0, "Finish Wings", "The wings should be working", 5, 10, 20);
+  }
+
+  /**
+   * Verify that the cloning creates a separate, but identical instance of our node.
+   */
+  @Test
+  public void testCloning() {
+    ActivityNode testNode2 = testNode.clone();
+
+    assertEquals(testNode.getName(), testNode2.getName());
+    assertEquals(testNode.getDescription(), testNode2.getDescription());
+    assertArrayEquals(testNode.getTimes(), testNode.getTimes(), Math.ulp(testNode.getTimes()[0]));
+    assertArrayEquals(testNode.getDependencies().toArray(), testNode2.getDependencies().toArray());
+
+    testNode2.setName("New Name");
+    assertNotSame(testNode.getName(), testNode2.getName());
+  }
+
   /**
    * Verify that the constructor modifies the correct expected time, and that the dependencies are an empty list.
    */
   @Test
   public void testConstructorTimesAndDependencies() {
-    ActivityNode a = new ActivityNode(0, "Finish Wings", "The wings should be working", 5, 10, 20);
-    assertEquals(0, a.getDependencies().size());
-    assertEquals((20 + 10 * 4 + 5) / 6.0, a.getTimes()[3], Math.ulp((20 + 10 * 4 + 5) / 6.0));
+    assertEquals(0, testNode.getDependencies().size());
+    assertEquals((20 + 10 * 4 + 5) / 6.0, testNode.getTimes()[3], Math.ulp((20 + 10 * 4 + 5) / 6.0));
   }
 
   /**
@@ -24,16 +49,14 @@ public class ActivityNodeTest {
    */
   @Test
   public void testTimeUpdatesWithAccess() {
-    ActivityNode a = new ActivityNode(0, "Finish Wings", "The wings should be working", 5, 10, 20);
+    testNode.setNormalTime(11);
+    assertEquals((20 + 11 * 4 + 5) / 6.0, testNode.getTimes()[3], Math.ulp((20 + 11 * 4 + 5) / 6.0));
 
-    a.setNormalTime(11);
-    assertEquals((20 + 11 * 4 + 5) / 6.0, a.getTimes()[3], Math.ulp((20 + 11 * 4 + 5) / 6.0));
+    testNode.setPessimisticTime(21);
+    assertEquals((21 + 11 * 4 + 5) / 6.0, testNode.getTimes()[3], Math.ulp((21 + 11 * 4 + 5) / 6.0));
 
-    a.setPessimisticTime(21);
-    assertEquals((21 + 11 * 4 + 5) / 6.0, a.getTimes()[3], Math.ulp((21 + 11 * 4 + 5) / 6.0));
-
-    a.setOptimisticTime(4);
-    assertEquals((21 + 11 * 4 + 4) / 6.0, a.getTimes()[3], Math.ulp((21 + 11 * 4 + 4) / 6.0));
+    testNode.setOptimisticTime(4);
+    assertEquals((21 + 11 * 4 + 4) / 6.0, testNode.getTimes()[3], Math.ulp((21 + 11 * 4 + 4) / 6.0));
   }
 
   /**
@@ -42,12 +65,10 @@ public class ActivityNodeTest {
    */
   @Test
   public void testNodeIDInDependencySet() {
-    ActivityNode a = new ActivityNode(0, "Finish Wings", "The wings should be working", 5, 10, 20);
+    assertEquals(false, testNode.setDependencies(new HashSet<>(Arrays.asList((long) 0, (long) 1, (long) 2, (long) 3))));
+    assertEquals(0, testNode.getDependencies().size());
 
-    assertEquals(false, a.setDependencies(new HashSet<>(Arrays.asList((long) 0, (long) 1, (long) 2, (long) 3))));
-    assertEquals(0, a.getDependencies().size());
-
-    assertEquals(true, a.setDependencies(new HashSet<>(Arrays.asList((long) 1, (long) 2, (long) 3, (long) 4))));
-    assertEquals(4, a.getDependencies().size());
+    assertEquals(true, testNode.setDependencies(new HashSet<>(Arrays.asList((long) 1, (long) 2, (long) 3, (long) 4))));
+    assertEquals(4, testNode.getDependencies().size());
   }
 }
