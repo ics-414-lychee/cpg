@@ -9,13 +9,14 @@ import org.junit.*;
 import static org.junit.Assert.*;
 
 public class ActivityNodeTest {
+  /** Test node for all tests to operate on. */
   private static ActivityNode testNode;
 
   /**
    * Create our test node, to be updated before each test.
    */
   @Before
-  public void createNode() {
+  public void createTestNode() {
     testNode = new ActivityNode(0, "Finish Wings", "The wings should be working", 5, 10, 20);
   }
 

@@ -1,20 +1,35 @@
 package com.ActivityNetwork;
 
+import com.Interface.UserAccount;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
 public class NetworkControllerTest {
+  /** Login information to associate with a network controller. */
+  private static ArrayList<String> userInfo;
+
+  @BeforeClass
+  public static void createAndLogin() {
+    String randomUsername = UUID.randomUUID().toString();
+    String randomPassword = UUID.randomUUID().toString();
+    UserAccount.createAccount(randomUsername, randomPassword);
+
+    userInfo = UserAccount.verifyLoginInfo(randomUsername, randomPassword);
+  }
+
   /**
    * Verify that the network retrieval method returns a copy of the correct network if the node ID exists, otherwise
    * an empty network is returned.
    */
   @Test
   public void testRetrieveNetwork() {
-    NetworkController nc = new NetworkController("TestUser", "SomeToken");
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1));
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 10; i++) {
@@ -54,7 +69,7 @@ public class NetworkControllerTest {
    */
   @Test
   public void testModifyNetwork() {
-    NetworkController nc = new NetworkController("TestUser", "SomeToken", 100);
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), 100);
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
@@ -77,7 +92,7 @@ public class NetworkControllerTest {
    */
   @Test
   public void testUndoNetwork() {
-    NetworkController nc = new NetworkController("TestUser", "SomeToken", 100);
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), 100);
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
@@ -104,7 +119,7 @@ public class NetworkControllerTest {
    */
   @Test
   public void testRedoNetwork() {
-    NetworkController nc = new NetworkController("TestUser", "SomeToken", 100);
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), 100);
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
@@ -131,7 +146,7 @@ public class NetworkControllerTest {
    */
   @Test
   public void testTimestampRetrieval() {
-    NetworkController nc = new NetworkController("TestUser", "SomeToken", 100);
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), 100);
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
     long t = nc.retrieveTimestamp(networkIDList.get(0));
 
