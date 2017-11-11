@@ -3,6 +3,7 @@ package com.Interface;
 import com.ActivityNetwork.ActivityNetwork;
 import com.ActivityNetwork.ActivityNode;
 import com.ActivityNetwork.NetworkController;
+import com.ActivityNetwork.NetworkStorage;
 
 import java.io.Console;
 import java.util.*;
@@ -379,19 +380,17 @@ class CommandLineInterface {
       return false;
     }
 
-    // The new node ID is incremented from the node with the current largest node ID.
+    // The new node ID is incremented from the node with the current largest node ID. Start at 1 if this is empty.
     long nodeID = w.getNodeList().stream().max(
-        Comparator.comparingLong(ActivityNode::getNodeId)).orElse(null).getNodeId() + 1;
+        Comparator.comparingLong(ActivityNode::getNodeId)).orElse(
+            new ActivityNode(1, "", "", 0, 0, 0)).getNodeId() + 1;
 
     String description = c.readLine("Please describe your activity in one line: ");
     double optimisticTime = getValidTime(c, "optimistic");
     double normalTime = getValidTime(c, "normal");
     double pessimisticTime = getValidTime(c, "pessimistic");
     Set<Long> dependencies = getValidDependencies(c, w, nodeName);
-
-    if (yesOrNoQuestion(c, "Would you like to update your project deadline?")) {
-      w.setHoursDeadline(getValidTime(c, "deadline"));
-    }
+    w.setHoursDeadline(getValidTime(c, "deadline"));
 
     ActivityNode n = new ActivityNode(nodeID, nodeName, description, optimisticTime, normalTime, pessimisticTime);
     n.setDependencies(dependencies);
@@ -412,6 +411,7 @@ class CommandLineInterface {
     }
     Long nodeID = w.nodeIdFromName(nodeName);
     ActivityNode n = w.retrieveNode(nodeID);
+    boolean timeHasChanged = false;
 
     // For each entry in our node, we ask if the user wants to update that field.
     for (String entry : new ArrayList<>(Arrays.asList("name", "description", "optimistic time", "normal time",
@@ -435,20 +435,28 @@ class CommandLineInterface {
 
         case "optimistic time":
           n.setOptimisticTime(updateDesired ? getValidTime(c, "optimistic") : n.getTimes()[0]);
+          timeHasChanged = updateDesired || timeHasChanged;
           break;
 
         case "normal time":
           n.setNormalTime(updateDesired ? getValidTime(c, "normal") : n.getTimes()[1]);
+          timeHasChanged = updateDesired || timeHasChanged;
           break;
 
         case "pessimistic time":
           n.setPessimisticTime(updateDesired ? getValidTime(c, "pessimistic") : n.getTimes()[2]);
+          timeHasChanged = updateDesired || timeHasChanged;
           break;
 
         case "dependencies":
           n.setDependencies(getValidDependencies(c, w, nodeName));
           break;
       }
+    }
+
+    // User has to update their deadline if they change the times.
+    if (timeHasChanged) {
+      w.setHoursDeadline(getValidTime(c, "deadline"));
     }
 
     // Modification is node removal and insertion.
@@ -496,7 +504,7 @@ class CommandLineInterface {
           break;
 
         case "set-deadline":
-          System.out.println((!w.setHoursDeadline(getValidTime(c, "deadline"))) ? "Deadline changed succesfully. " :
+          System.out.println((!w.setHoursDeadline(getValidTime(c, "deadline"))) ? "Deadline changed successfully. " :
               "Deadline not changed. Time is unrealistic. ");
           break;
 
@@ -525,5 +533,8 @@ class CommandLineInterface {
       // Commit our changes to our network chains.
       nc.modifyNetwork(w);
     }
+
+    // Save our changes upon exit.
+    nc.storeNetwork(networkID);
   }
 }
