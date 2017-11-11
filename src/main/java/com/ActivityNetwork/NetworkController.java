@@ -228,6 +228,27 @@ public class NetworkController {
   }
 
   /**
+   * Save the latest instance of the given network in our database.
+   *
+   * @param networkID ID of the network to save.
+   * @return True if the network was correctly saved. False otherwise.
+   */
+  public boolean storeNetwork(long networkID) {
+    Collections.reverse(networkChain);
+    for (ActivityNetwork a : networkChain) {
+
+      // If we find the network, save this.
+      if (a.getNetworkId() == networkID) {
+        NetworkStorage.storeNetwork(token, u, a);
+        return true;
+      }
+    }
+
+    // Otherwise, the network does not exist. No saving can be performed.
+    return false;
+  }
+
+  /**
    * Remove all instances of that network from our chains, and remove it from database as well. This action is
    * irreversible! We are now unable to "redo", so clear our removed chains.
    *

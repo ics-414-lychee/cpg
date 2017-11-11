@@ -15,7 +15,6 @@ import org.json.simple.parser.ParseException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -45,7 +44,7 @@ public final class UserAccount {
    * @param p Project JSON that corresponds to all projects associated with the current user.
    * @return List of project IDs associated with the current user.
    */
-  public static ArrayList<Long> idsFromProjectJSON(String p) {
+  static ArrayList<Long> idsFromProjectJSON(String p) {
     JSONParser jsonParser = new JSONParser();
     ArrayList<Long> idList = new ArrayList<>();
 
@@ -70,7 +69,7 @@ public final class UserAccount {
    * @param p Project JSON that corresponds to all projects associated with the current user.
    * @return List of project names associated with the current user.
    */
-  public static ArrayList<String> namesFromProjectJSON(String p) {
+  static ArrayList<String> namesFromProjectJSON(String p) {
     JSONParser jsonParser = new JSONParser();
     ArrayList<String> nameList = new ArrayList<>();
 
@@ -95,7 +94,7 @@ public final class UserAccount {
    * @param p Password of the user to create an account for.
    * @return Error message returned from account creation attempt. If there is no error, this is empty.
    */
-  static String createAccount(String u, String p) {
+  public static String createAccount(String u, String p) {
     JSONParser jsonParser = new JSONParser();
 
     try {

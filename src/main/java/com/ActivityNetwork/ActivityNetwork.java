@@ -434,10 +434,10 @@ public class ActivityNetwork {
   /**
    * Accessor method for the network's starting node ID.
    *
-   * @return The network's starting node ID.
+   * @return If the network is empty, return -1. Otherwise, the network's starting node ID.
    */
   long getStartNodeId() {
-    return nodeList.get(0).getNodeId();
+    return nodeList.isEmpty() ? -1 : nodeList.get(0).getNodeId();
   }
 
   /**
@@ -465,5 +465,14 @@ public class ActivityNetwork {
    */
   String getNetworkName() {
     return networkName;
+  }
+
+  /**
+   * Accessor method fo the network deadline.
+   *
+   * @return The network deadline.
+   */
+  public double getHoursDeadline() {
+    return hoursDeadline;
   }
 }
