@@ -298,53 +298,119 @@ public class ActivityNetwork {
   }
 
   /**
-   * Compute the earliest time the node with the given ID can finish.
-   *
-   * @param nodeId ID of the node to compute the EF of.
-   * @return The earliest finish time of the given node.
-   */
-  private double computeEarliestFinishTime(long nodeId) {
-    double offset = hoursDeadline - computeCriticalPathTime();
-    // TODO: finish EF computation
-    return offset;
+ * Compute the earliest time the node with the given ID can finish.
+ *
+ * @param nodeId ID of the node to compute the EF of.
+ * @return The earliest finish time of the given node.
+ */
+private double computeEarliestFinishTime(long nodeId) {
+  double offset = hoursDeadline - computeCriticalPathTime();
+  double finish=0;
+  double max=0;
+  if(nodeId==getStartNodeId()) {//if first node then earliest finish is the task duration
+	  double [] nodeTimes = nodeList.get(0).getTimes();
+	  return nodeTimes[3];  
   }
-
-  /**
-   * Compute the latest time the node with the given ID can finish.
-   *
-   * @param nodeId ID of the node to compute the LF of.
-   * @return The latest finish time of the given node.
-   */
-  private double computeLatestFinishTime(long nodeId) {
-    double offset = hoursDeadline - computeCriticalPathTime();
-    // TODO: finish LF computation
-    return offset;
+  else {
+	  int i=0;
+	  while(retrieveNode(nodeId)!=nodeList.get(i)) {
+		  double [] nodeTimes = nodeList.get(i).getTimes();//get times of node at index i of nodeList
+		  finish = finish + nodeTimes[3];//grabs 4th position (expected Time) and adds to the previous start time
+		  if(finish>max) {
+			  max=finish;
+		  }
+		  i++;
+	  }
+	  double [] time =retrieveNode(nodeId).getTimes();
+	  return max + time[3];
   }
+  
+}
 
-  /**
-   * Compute the earliest time a node with the given ID can start.
-   *
-   * @param nodeId ID of the node to compute the ES of.
-   * @return The earliest start time of the given node.
-   */
-  private double computeEarliestStartTime(long nodeId) {
-    double offset = hoursDeadline - computeCriticalPathTime();
-    // TODO: finish ES computation
-    return offset;
+/**
+ * Compute the latest time the node with the given ID can finish.
+ *
+ * @param nodeId ID of the node to compute the LF of.
+ * @return The latest finish time of the given node.
+ */
+private double computeLatestFinishTime(long nodeId) {
+	
+  double finish = computeEarliestFinishTime(nodeId);
+  double min = finish;
+  
+  if(retrieveNode(nodeId)==nodeList.get(nodeList.size())) {//compares param of ActivityNode to last node in nodelist
+	  return finish;//if node is last node then latest finish time is early finish time	  
   }
-
-  /**
-   * Compute the latest time a node with the given ID can start.
-   *
-   * @param nodeId ID of the node to compute the LS of.
-   * @return The latest start time of the given node.
-   */
-  private double computeLatestStartTime(long nodeId) {
-    double offset = hoursDeadline - computeCriticalPathTime();
-    // TODO: finish LS computation
-    return offset;
+  else {
+	  int i = 0;
+	  while(retrieveNode(nodeId)!=nodeList.get(nodeList.size()-i)) {//starts at end of list and works towards front
+		  double [] nodeTimes = nodeList.get(nodeList.size()-i).getTimes();
+		  finish=finish-nodeTimes[3];
+		  if(finish<min) {
+			  min=finish;
+		  }
+		  i++;
+	  }
+	  return min;
   }
+}
 
+/**
+ * Compute the earliest time a node with the given ID can start.
+ *
+ * @param nodeId ID of the node to compute the ES of.
+ * @return The earliest start time of the given node.
+ */
+private double computeEarliestStartTime(long nodeId) {
+	
+  double start=0;
+  double max = 0;
+  
+  if(nodeId==getStartNodeId()) {  
+	  start = 0;
+	  return start;
+  }
+  else {
+	  int i=0;
+	  while(retrieveNode(nodeId)!=nodeList.get(i)) {
+		  double [] nodeTimes = nodeList.get(i).getTimes();//get times of node at index i of nodeList
+		  start = start + nodeTimes[3];//grabs 4th position (expected Time) and adds to the previous start time
+		  if(start>max) {
+			  max=start;
+		  }
+		  i++;
+	  }
+	  return max;
+  }
+}
+
+/**
+ * Compute the latest time a node with the given ID can start.
+ *
+ * @param nodeId ID of the node to compute the LS of.
+ * @return The latest start time of the given node.
+ */
+private double computeLatestStartTime(long nodeId) {
+  
+  double finish = computeEarliestFinishTime(nodeId);
+  double min = finish;
+  
+  if(retrieveNode(nodeId)==nodeList.get(nodeList.size())) {//compares param of ActivityNode to last node in nodelist
+	  return finish-retrieveNode(nodeId).getTimes()[3];	  
+  }
+  else {
+	  int i = 0;
+	  while(retrieveNode(nodeId)!=nodeList.get(nodeList.size()-i)) {//starts at end of list and works to the front
+		  double [] nodeTimes = nodeList.get(nodeList.size()-i).getTimes();
+		  finish=finish-nodeTimes[3];
+		  if(finish<min) {
+			  min=finish;
+		  }
+		  i++;
+	  }
+	  return min-retrieveNode(nodeId).getTimes()[3];
+  }
+}
   /**
    * Find all predecessors for the node matching the given node ID.
    *
