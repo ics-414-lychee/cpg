@@ -25,7 +25,7 @@ public class ActivityNodeTest {
    */
   @Test
   public void testCloning() {
-    ActivityNode testNode2 = testNode.clone();
+    ActivityNode testNode2 = testNode.twin();
 
     assertEquals(testNode.getName(), testNode2.getName());
     assertEquals(testNode.getDescription(), testNode2.getDescription());

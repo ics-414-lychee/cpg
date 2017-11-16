@@ -15,4 +15,4 @@ buildNumber.properties
 
 # Add IDEA files
 .idea
-cpg.iml
+*.iml

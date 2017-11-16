@@ -67,8 +67,7 @@ public class ActivityNode {
   /**
    * Cloning method, using for creating a new instance of the current node.
    */
-  @Override
-  public ActivityNode clone() {
+  ActivityNode twin() {
     ActivityNode n = new ActivityNode(this.getNodeId(), this.getName(), this.getDescription(),
         this.getTimes()[0], this.getTimes()[1], this.getTimes()[2]);
     n.setDependencies(this.dependencies);
