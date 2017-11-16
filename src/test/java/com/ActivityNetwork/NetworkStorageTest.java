@@ -10,6 +10,7 @@ import com.Interface.UserAccount;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 public class NetworkStorageTest {
   /** User information retrieved upon login. */
@@ -45,6 +46,11 @@ public class NetworkStorageTest {
     NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1));
     long networkID = nc.createNetwork("Project Retrieval");
 
+    // Store our network, undo our change, and load it back into our chains.
+    assertEquals(true, nc.storeNetwork(networkID));
+    assertEquals(true, nc.undoNetworkChange(networkID));
+    assertEquals(true, nc.loadNetwork(networkID));
+
     ActivityNetwork a = nc.retrieveNetwork(networkID);
     assertEquals(networkID, a.getNetworkId());
     assertEquals(0, a.getHoursDeadline(), Math.ulp(a.getHoursDeadline()));
@@ -79,6 +85,7 @@ public class NetworkStorageTest {
     a.insertNode(new ActivityNode(1, "Test Node", "Test Description", 5, 10, 15));
     a.setHoursDeadline(20);
 
+    nc.modifyNetwork(a);
     nc.storeNetwork(networkID);
 
     ActivityNetwork b = nc.retrieveNetwork(networkID);

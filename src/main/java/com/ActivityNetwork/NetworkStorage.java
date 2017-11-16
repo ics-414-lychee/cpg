@@ -1,8 +1,10 @@
 package com.ActivityNetwork;
 
+import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -17,6 +19,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * The NetworkStorage class, which contains a set of methods to interact with the backend.
@@ -94,63 +97,81 @@ public final class NetworkStorage {
 
     } catch (ParseException e) {
       // We return an empty network in the event we cannot parse our string.
-      return new ActivityNetwork(0, "");
+      return new ActivityNetwork(0, "Bad");
     }
   }
 
   /**
-   * Map the given values 'v' to their similarity indexed attributes 'a' in JSON format. Returns the resulting string.
-   *
-   * @param v List of values that will map to attributes 'a'.
-   * @param a List of attributes that will map to 'v'.
-   * @return The resulting string of the a -> v map.
-   */
-  private static String mapValuesToAttributeJSON(ArrayList<String> v, ArrayList<String> a) {
-    assert v.size() == a.size();
-    JSONObject resultant = new JSONObject();
-
-    for (int i = 0; i < v.size(); i++) {
-      resultant.put(a.get(i), v.get(i));
-    }
-
-    return resultant.toString();
-  }
-
-  /**
-   * Perform a POST with the open HTTP client and input, and return the response.
+   * Perform a POST with the open HTTP client and input, and return the response. Following the resource below:
+   * https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
    *
    * @param jsonParser Open JSON Parser instance.
    * @param h          Open HTTP client, used to POST our input.
-   * @param i          Input JSON string to POST.
+   * @param i          Input list of name-value pairs to POST.
+   * @param f          PHP file to use with our POST request.
    * @return A JSON object containing the response of our POST.
    */
-  private static JSONObject postAndGetResponse(JSONParser jsonParser, HttpClient h, String i) {
+  private static JSONObject postAndGetResponse(JSONParser jsonParser, HttpClient h, List<NameValuePair> i, String f) {
     try {
-      // TODO: replace with our own links and header for network creation.
-      HttpPost postRequest = new HttpPost("http://localhost:8080/RESTfulExample/json/product/get");
-      StringEntity input = new StringEntity(i);
-      input.setContentType("application/json");
-      postRequest.setEntity(input);
+      HttpPost postRequest = new HttpPost(f);
+      postRequest.setEntity(new UrlEncodedFormEntity(i));
 
       // POST our token, username, and desired name. Wait for our response.
       HttpResponse response = h.execute(postRequest);
-      if (response.getStatusLine().getStatusCode() != 201) {
+      if (response.getStatusLine().getStatusCode() != 200) {
         throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
       }
 
       // Read our response.
       BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
       return (JSONObject) jsonParser.parse(br);
+
     } catch (IOException | ParseException e) {
-      // TODO: decide what happens here.
-      return new JSONObject();
+      JSONObject j = new JSONObject();
+      j.put("ErrorMessage", e.toString());
+      return j;
+    }
+  }
+
+  /**
+   * POST our JSON input j and our regular value-pair input i with the given HTTP client and return the response.
+   * Following the resource given here: http://www.baeldung.com/httpclient-post-http-request
+   *
+   * @param jsonParser Open JSON Parser instance.
+   * @param h          Open HTTP client, used to POST our input.
+   * @param j          JSON string to POST.
+   * @param i          Input list of name-value pairs to POST.
+   * @param f          PHP file to use with our POST request.
+   * @return A JSON object containing the response of our POST.
+   */
+  private static JSONObject postJSONAndGetResponse(JSONParser jsonParser, HttpClient h, String j,
+                                                   List<NameValuePair> i, String f) {
+    try {
+      HttpPost postRequest = new HttpPost(f);
+      MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+
+      postRequest.setEntity(new UrlEncodedFormEntity(i));
+
+      // POST our token, username, and desired name. Wait for our response.
+      HttpResponse response = h.execute(postRequest);
+      if (response.getStatusLine().getStatusCode() != 200) {
+        throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+      }
+
+      // Read our response.
+      BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+      return (JSONObject) jsonParser.parse(br);
+
+    } catch (IOException | ParseException e) {
+      JSONObject j = new JSONObject();
+      j.put("ErrorMessage", e.toString());
+      return j;
     }
   }
 
   /**
    * Creates a network entry in the backend, associated with the given user and network name. The project ID of this
-   * new network is returned. Following the resource below:
-   * https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
+   * new network is returned.
    *
    * @param token       Authentication token, obtained from a successful login.
    * @param u           Username of the current user with the given token.
@@ -159,43 +180,45 @@ public final class NetworkStorage {
    */
   static long createNetwork(String token, String u, String networkName) {
     JSONParser jsonParser = new JSONParser();
-    String i = mapValuesToAttributeJSON(new ArrayList<>(Arrays.asList(token, u, networkName)),
-        new ArrayList<>(Arrays.asList("auth", "username", "networkname")));
-
     DefaultHttpClient httpClient = new DefaultHttpClient();
-    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i);
+
+    // Collect our parameters to POST.
+    List<NameValuePair> i = new ArrayList<>(Arrays.asList(new BasicNameValuePair("username", u),
+        new BasicNameValuePair("auth", token), new BasicNameValuePair("projectname", networkName)));
+
+    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i, "http://localhost/PHPWebServer/create.php");
     httpClient.getConnectionManager().shutdown();
 
     // If we have an error, return a network ID of 0.
-    return (Boolean) jsonReturned.get("Error") ? 0 : Long.getLong((String) jsonReturned.get("ProjectID"));
+    return jsonReturned.get("Error").toString().equals("false") ? 0 :
+        Long.parseLong(jsonReturned.get("ProjectID").toString());
   }
 
   /**
-   * Save the current network. If this action is successful, return true. Following the resource below:
-   * https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
+   * Save the current network. If this action is successful, return true.
    *
    * @param token Authentication token, obtained from a successful login.
    * @param u     Username of the current user with the given token.
    * @param a     Network to store.
    * @return True if the action was successful. False otherwise.
    */
-  public static boolean storeNetwork(String token, String u, ActivityNetwork a) {
+  static boolean storeNetwork(String token, String u, ActivityNetwork a) {
     JSONParser jsonParser = new JSONParser();
-    String i = mapValuesToAttributeJSON(new ArrayList<>(Arrays.asList(token, u, exportNetworkAsJSON(a))),
-        new ArrayList<>(Arrays.asList("auth", "username", "json")));
-
     DefaultHttpClient httpClient = new DefaultHttpClient();
-    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i);
+
+    // Collect our parameters to POST.
+    List<NameValuePair> i = new ArrayList<>(Arrays.asList(new BasicNameValuePair("username", u),
+        new BasicNameValuePair("auth", token));
+
+    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i, "http://localhost/PHPWebServer/save.php");
     httpClient.getConnectionManager().shutdown();
 
     // If we have an error, indicate that we were not able to save the network.
-    return !((Boolean) jsonReturned.get("Error"));
-
+    return jsonReturned.get("Error").toString().equals("true");
   }
 
   /**
-   * Remove the network from the database, given the network ID. Following the resource below:
-   * https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
+   * Remove the network from the database, given the network ID.
    *
    * @param token     Authentication token, obtained from a successful login.
    * @param u         Username of the current user with the given token.
@@ -204,20 +227,21 @@ public final class NetworkStorage {
    */
   static boolean deleteNetwork(String token, String u, long networkId) {
     JSONParser jsonParser = new JSONParser();
-    String i = mapValuesToAttributeJSON(new ArrayList<>(Arrays.asList(token, u, Long.toString(networkId))),
-        new ArrayList<>(Arrays.asList("auth", "username", "networkid")));
-
     DefaultHttpClient httpClient = new DefaultHttpClient();
-    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i);
+
+    // Collect our parameters to POST.
+    List<NameValuePair> i = new ArrayList<>(Arrays.asList(new BasicNameValuePair("username", u),
+        new BasicNameValuePair("auth", token), new BasicNameValuePair("projectid", Long.toString(networkId))));
+
+    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i, "http://localhost/PHPWebServer/delete.php");
     httpClient.getConnectionManager().shutdown();
 
     // If we have an error, indicate that we were not able to delete the network.
-    return !((Boolean) jsonReturned.get("Error"));
+    return jsonReturned.get("Error").toString().equals("true");
   }
 
   /**
-   * Load the network (as it was last saved) from the database given the network ID. Following the resource below:
-   * https://www.mkyong.com/webservices/jax-rs/restful-java-client-with-apache-httpclient/
+   * Load the network (as it was last saved) from the database given the network ID.
    *
    * @param token     Authentication token, obtained from a successful login.
    * @param u         Username of the current user with the given token.
@@ -227,15 +251,17 @@ public final class NetworkStorage {
    */
   static ActivityNetwork retrieveNetwork(String token, String u, long networkId) {
     JSONParser jsonParser = new JSONParser();
-    String i = mapValuesToAttributeJSON(new ArrayList<>(Arrays.asList(token, u, Long.toString(networkId))),
-        new ArrayList<>(Arrays.asList("auth", "username", "networkid")));
-
     DefaultHttpClient httpClient = new DefaultHttpClient();
-    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i);
+
+    // Collect our parameters to POST.
+    List<NameValuePair> i = new ArrayList<>(Arrays.asList(new BasicNameValuePair("username", u),
+        new BasicNameValuePair("auth", token), new BasicNameValuePair("projectid", Long.toString(networkId))));
+
+    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i, "http://localhost/PHPWebServer/load.php");
     httpClient.getConnectionManager().shutdown();
 
     // If we have an error, indicate that we were not able to retrieve the network.
-    return (Boolean) jsonReturned.get("Error") ? new ActivityNetwork(0, "Bad") :
-        importNetworkAsJSON((String) jsonReturned.get("NodesJSON"));
+    return jsonReturned.get("Error").toString().equals("false") ? new ActivityNetwork(0, "Bad") :
+        importNetworkAsJSON(jsonReturned.get("NodesJSON").toString());
   }
 }

@@ -24,7 +24,7 @@ public class ActivityNetworkTest {
    */
   @Test
   public void testNetworkCloning() {
-    ActivityNetwork testNetwork2 = testNetwork.clone();
+    ActivityNetwork testNetwork2 = testNetwork.twin();
 
     assertEquals(testNetwork.getNetworkId(), testNetwork2.getNetworkId());
     testNetwork.insertNode(new ActivityNode(0, "Working Wings", "Wings are working", 5, 10, 15));

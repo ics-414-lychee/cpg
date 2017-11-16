@@ -2,7 +2,6 @@ package com.ActivityNetwork;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.stream.Collectors;
 
 /**
  * The NetworkController class, which controls and manages various ActivityNetwork instances.
@@ -92,7 +91,7 @@ public class NetworkController {
    * @param networkID Network to load into our chain.
    * @return True if the network with the given ID exists and was loaded correctly. False otherwise.
    */
-  public boolean loadNetwork(long networkID) {
+  boolean loadNetwork(long networkID) {
     ActivityNetwork a = NetworkStorage.retrieveNetwork(token, u, networkID);
 
     if (a.getNetworkId() == 0) {
@@ -138,6 +137,7 @@ public class NetworkController {
     if (networkChain.stream().anyMatch(n -> n.getNetworkId() == a.getNetworkId())) {
       appendToChains(a, System.currentTimeMillis());
       return true;
+
     } else {
       return false;
     }
@@ -218,13 +218,13 @@ public class NetworkController {
       // If we find the network, return the list to normal and return **a clone** of the network we found.
       if (a.getNetworkId() == networkID) {
         Collections.reverse(networkChain);
-        return a.clone();
+        return a.twin();
       }
     }
 
     // Otherwise, the network does not exist. Return the list to normal.
     Collections.reverse(networkChain);
-    return new ActivityNetwork(0, "");
+    return new ActivityNetwork(0, "Bad");
   }
 
   /**
@@ -239,8 +239,7 @@ public class NetworkController {
 
       // If we find the network, save this.
       if (a.getNetworkId() == networkID) {
-        NetworkStorage.storeNetwork(token, u, a);
-        return true;
+        return NetworkStorage.storeNetwork(token, u, a);
       }
     }
 
