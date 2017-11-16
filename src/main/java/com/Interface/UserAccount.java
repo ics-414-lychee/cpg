@@ -5,9 +5,11 @@
 package com.Interface;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -17,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * The UserAccount class, which contains a set of methods to interact with the backend about account information.
@@ -51,8 +54,13 @@ public final class UserAccount {
     try {
       JSONObject jsonProject = (JSONObject) jsonParser.parse(p);
 
+      // If the user has no projects, then we return an empty list.
+      if (jsonProject.get("ProjectIDs").toString().equals("")) {
+        return new ArrayList<>();
+      }
+
       // Obtain our project ID list, and return this as a string of Longs.
-      for (String s : ((String) jsonProject.get("projectIDs")).split(",")) {
+      for (String s : jsonProject.get("ProjectIDs").toString().split(",")) {
         idList.add(Long.parseLong(s));
       }
       return idList;
@@ -76,8 +84,13 @@ public final class UserAccount {
     try {
       JSONObject jsonProject = (JSONObject) jsonParser.parse(p);
 
+      // If the user has no projects, then we return an empty list.
+      if (jsonProject.get("ProjectNames").toString().equals("")) {
+        return new ArrayList<>();
+      }
+
       // Obtain our project ID list, and return this as a string of Longs.
-      nameList.addAll(Arrays.asList(((String) jsonProject.get("projectIDs")).split(",")));
+      nameList.addAll(Arrays.asList((jsonProject.get("ProjectNames").toString().split(","))));
       return nameList;
 
     } catch (ParseException e) {
@@ -100,15 +113,14 @@ public final class UserAccount {
     try {
       DefaultHttpClient httpClient = new DefaultHttpClient();
 
-      // TODO: replace with our own links and header for account creation.
-      HttpPost postRequest = new HttpPost("http://localhost:8080/RESTfulExample/json/product/get");
-      StringEntity loginInfo = new StringEntity(usernamePasswordAsJSON(u, p));
-      loginInfo.setContentType("application/json");
-      postRequest.setEntity(loginInfo);
+      HttpPost postRequest = new HttpPost("http://localhost/PHPWebServer/register.php");
+      List<NameValuePair> params = new ArrayList<>(Arrays.asList(new BasicNameValuePair("username", u),
+          new BasicNameValuePair("password", p)));
+      postRequest.setEntity(new UrlEncodedFormEntity(params));
 
       // POST our login information, wait for our response.
       HttpResponse response = httpClient.execute(postRequest);
-      if (response.getStatusLine().getStatusCode() != 201) {
+      if (response.getStatusLine().getStatusCode() != 200) {
         throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
       }
 
@@ -120,10 +132,8 @@ public final class UserAccount {
       httpClient.getConnectionManager().shutdown();
       return (String) jsonReturned.get("ErrorMessage");
 
-    } catch (ParseException e) {
-      return "Response not correctly parsed.";
-    } catch (IOException e) {
-      return "IO Exception Somewhere...";
+    } catch (ParseException | IOException e) {
+      return "Exception occurred. Do not proceed.";
     }
   }
 
@@ -143,33 +153,33 @@ public final class UserAccount {
     try {
       DefaultHttpClient httpClient = new DefaultHttpClient();
 
-      // TODO: replace with our own links and header for login.
-      HttpPost postRequest = new HttpPost("http://localhost:8080/RESTfulExample/json/product/get");
-      StringEntity loginInfo = new StringEntity(usernamePasswordAsJSON(u, p));
-      loginInfo.setContentType("application/json");
-      postRequest.setEntity(loginInfo);
+      HttpPost postRequest = new HttpPost("http://localhost/PHPWebServer/login.php");
+      List<NameValuePair> params = new ArrayList<>(Arrays.asList(new BasicNameValuePair("username", u),
+          new BasicNameValuePair("password", p)));
+      postRequest.setEntity(new UrlEncodedFormEntity(params));
 
       // POST our login information, wait for our response.
       HttpResponse response = httpClient.execute(postRequest);
-      if (response.getStatusLine().getStatusCode() != 201) {
+      if (response.getStatusLine().getStatusCode() != 200) {
         throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
       }
 
       // Read our response.
       BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
       JSONObject jsonReturned = (JSONObject) jsonParser.parse(br);
-      JSONObject errorMessage = (JSONObject) jsonParser.parse((String) jsonReturned.get("ErrorJSON"));
+      JSONObject errorMessage = (JSONObject) jsonParser.parse(jsonReturned.get("ErrorJSON").toString());
 
       // If we have an error, return an empty list.
-      if ((Boolean) errorMessage.get("Error")) {
+      if (errorMessage.get("Error").toString().equals("False")) {
         httpClient.getConnectionManager().shutdown();
         return new ArrayList<>();
 
       } else {
         // Otherwise, return the username, authentication token and the project JSON.
         httpClient.getConnectionManager().shutdown();
-        return new ArrayList<>(Arrays.asList(u, (String) errorMessage.get("AuthToken"),
-            (String) jsonReturned.get("ProjectJSON")));
+        return new ArrayList<>(Arrays.asList(u, errorMessage.get("Auth").toString(),
+            jsonReturned.get("ProjectsJSON").toString()));
+
       }
     } catch (ParseException | IOException e) {
       return new ArrayList<>();
