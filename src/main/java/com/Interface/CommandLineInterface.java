@@ -3,7 +3,6 @@ package com.Interface;
 import com.ActivityNetwork.ActivityNetwork;
 import com.ActivityNetwork.ActivityNode;
 import com.ActivityNetwork.NetworkController;
-import com.ActivityNetwork.NetworkStorage;
 
 import java.io.Console;
 import java.util.*;
@@ -363,7 +362,6 @@ class CommandLineInterface {
 
     return dependencies;
   }
-
 
   /**
    * Display the console to add a new node to the network. The node ID of this node is incremented from the current
