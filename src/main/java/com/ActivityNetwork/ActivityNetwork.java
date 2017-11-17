@@ -301,6 +301,15 @@ public class ActivityNetwork {
   }
 
   /**
+   * Mutator method for the network name field.
+   *
+   * @param networkName New name of the network.
+   */
+  void setNetworkName(String networkName) {
+    this.networkName = networkName;
+  }
+
+  /**
    * Compute the earliest time the node with the given ID can finish.
    *
    * @param nodeId ID of the node to compute the EF of.
