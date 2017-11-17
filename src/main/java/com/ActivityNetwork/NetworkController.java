@@ -1,5 +1,7 @@
 package com.ActivityNetwork;
 
+import com.Interface.UserAccount;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -28,23 +30,8 @@ public class NetworkController {
   /** The authentication token associated with this controller. Obtained from a successful login. */
   private String token;
 
-  /**
-   * Constructor. We initialize our chains here, and use a default value of 150 links for our maximum chain
-   * length.
-   *
-   * @param u     Username associated with the controller. Obtained from a successful login.
-   * @param token Authentication token associated with this controller. Obtained from a successful login.
-   */
-  public NetworkController(String u, String token) {
-    this.u = u;
-    this.token = token;
-    this.maximumChainLength = 150;
-
-    this.networkChain = new ArrayList<>();
-    this.timestampChain = new ArrayList<>();
-    this.removedNetworkChain = new ArrayList<>();
-    this.removedTimestampChain = new ArrayList<>();
-  }
+  /** The JSON set of project names and IDs, who are related by their indices. Obtained from a successful login. */
+  private String j;
 
   /**
    * Constructor. We initialize our chains here, and use the given value for our maximum chain length. If this value
@@ -52,17 +39,34 @@ public class NetworkController {
    *
    * @param u                  Username associated with the controller. Obtained from a successful login.
    * @param token              Authentication token associated with this controller. Obtained from a successful login.
+   * @param j                  ProjectsJSON returned from a successful login.
    * @param maximumChainLength Maximum length of our chains.
    */
-  NetworkController(String u, String token, int maximumChainLength) {
+  public NetworkController(String u, String token, String j, int maximumChainLength) {
     this.u = u;
     this.token = token;
+    this.j = j;
     this.maximumChainLength = (maximumChainLength < 1) ? 150 : maximumChainLength;
 
     this.networkChain = new ArrayList<>();
     this.timestampChain = new ArrayList<>();
     this.removedNetworkChain = new ArrayList<>();
     this.removedTimestampChain = new ArrayList<>();
+
+    // Load our networks and network names into our chains.
+    UserAccount.idsFromProjectJSON(j).forEach(this::loadNetwork);
+  }
+
+  /**
+   * Constructor. We initialize our chains here, and use a default value of 150 links for our maximum chain
+   * length.
+   *
+   * @param u     Username associated with the controller. Obtained from a successful login.
+   * @param token Authentication token associated with this controller. Obtained from a successful login.
+   * @param j     ProjectsJSON returned from a successful login.
+   */
+  public NetworkController(String u, String token, String j) {
+    this(u, token, j, 150);
   }
 
   /**
@@ -92,7 +96,7 @@ public class NetworkController {
    * @return True if the network with the given ID exists and was loaded correctly. False otherwise.
    */
   boolean loadNetwork(long networkID) {
-    ActivityNetwork a = NetworkStorage.retrieveNetwork(token, u, networkID);
+    ActivityNetwork a = NetworkStorage.retrieveNetwork(token, u, j, networkID);
 
     if (a.getNetworkId() == 0) {
       return false;
@@ -239,7 +243,7 @@ public class NetworkController {
 
       // If we find the network, save this.
       if (a.getNetworkId() == networkID) {
-        return NetworkStorage.storeNetwork(token, u, a);
+        return !NetworkStorage.storeNetwork(token, u, j, a).equals("");
       }
     }
 
@@ -269,7 +273,7 @@ public class NetworkController {
     removedTimestampChain.clear();
 
     // We must remove from the chains, and delete the network from the database.
-    return removedFromChains && NetworkStorage.deleteNetwork(token, u, networkID);
+    return removedFromChains && !NetworkStorage.deleteNetwork(token, u, j, networkID).equals("");
   }
 
   /**

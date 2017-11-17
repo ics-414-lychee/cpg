@@ -16,13 +16,12 @@ public class UserAccountTest {
     String randomPassword = UUID.randomUUID().toString();
 
     String errorMessage = UserAccount.createAccount(randomUsername, randomPassword);
-    assertNotSame("Invalid parameters", errorMessage);
-    assertNotSame("IO Exception Somewhere...", errorMessage);
-    assertNotSame("Response not correctly parsed.", errorMessage);
+    assertFalse(errorMessage.equals("Invalid parameters"));
+    assertFalse(errorMessage.equals("IO Exception Somewhere..."));
+    assertFalse(errorMessage.equals("Response not correctly parsed."));
 
-    // TODO: check for other assertions in account creation.
-
-    // TODO: ensure that we cannot add the same account with the same info.
+    String errorMessage2 = UserAccount.createAccount(randomUsername, randomPassword);
+    assertEquals("Username already exists", errorMessage2);
   }
 
   @Test
@@ -38,7 +37,7 @@ public class UserAccountTest {
     assertSame(0, UserAccount.idsFromProjectJSON(userInfo.get(2)).size());
     assertSame(0, UserAccount.namesFromProjectJSON(userInfo.get(2)).size());
 
-    NetworkController nc = new NetworkController(randomUsername, userInfo.get(1));
+    NetworkController nc = new NetworkController(randomUsername, userInfo.get(1), userInfo.get(2));
     assertNotSame(0, nc.createNetwork("Some Random Name"));
   }
 }

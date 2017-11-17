@@ -10,7 +10,6 @@ import com.Interface.UserAccount;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
 
 public class NetworkStorageTest {
   /** User information retrieved upon login. */
@@ -33,7 +32,7 @@ public class NetworkStorageTest {
    */
   @Test
   public void testNetworkCreation() {
-    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1));
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), userInfo.get(2));
 
     assertNotSame(0, nc.createNetwork("Project Creation"));
   }
@@ -43,7 +42,7 @@ public class NetworkStorageTest {
    */
   @Test
   public void testNetworkRetrieval() {
-    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1));
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), userInfo.get(2));
     long networkID = nc.createNetwork("Project Retrieval");
 
     // Store our network, undo our change, and load it back into our chains.
@@ -63,7 +62,7 @@ public class NetworkStorageTest {
    */
   @Test
   public void testNetworkDeletion() {
-    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1));
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), userInfo.get(2));
     long networkID = nc.createNetwork("Project Deletion");
 
     ActivityNetwork a = nc.retrieveNetwork(networkID);
@@ -78,7 +77,7 @@ public class NetworkStorageTest {
    */
   @Test
   public void testNetworkStorage() {
-    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1));
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), userInfo.get(2));
     long networkID = nc.createNetwork("Project Storage");
 
     ActivityNetwork a = nc.retrieveNetwork(networkID);

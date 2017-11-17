@@ -4,6 +4,7 @@
 
 package com.Interface;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -20,6 +21,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The UserAccount class, which contains a set of methods to interact with the backend about account information.
@@ -27,27 +29,12 @@ import java.util.List;
 @SuppressWarnings("unchecked")
 public final class UserAccount {
   /**
-   * Parse the given username and password, and fit these into a JSON string appropriate for our POST request.
-   *
-   * @param u Username to use for output string.
-   * @param p Password to use for output string.
-   * @return JSON string appropriate for the login/creation POST requests.
-   */
-  private static String usernamePasswordAsJSON(String u, String p) {
-    JSONObject jsonLogin = new JSONObject();
-    jsonLogin.put("username", u);
-    jsonLogin.put("password", p);
-
-    return jsonLogin.toString();
-  }
-
-  /**
    * Given the project JSON, return a list of the project IDs.
    *
    * @param p Project JSON that corresponds to all projects associated with the current user.
    * @return List of project IDs associated with the current user.
    */
-  static ArrayList<Long> idsFromProjectJSON(String p) {
+  public static ArrayList<Long> idsFromProjectJSON(String p) {
     JSONParser jsonParser = new JSONParser();
     ArrayList<Long> idList = new ArrayList<>();
 
@@ -77,7 +64,7 @@ public final class UserAccount {
    * @param p Project JSON that corresponds to all projects associated with the current user.
    * @return List of project names associated with the current user.
    */
-  static ArrayList<String> namesFromProjectJSON(String p) {
+  public static ArrayList<String> namesFromProjectJSON(String p) {
     JSONParser jsonParser = new JSONParser();
     ArrayList<String> nameList = new ArrayList<>();
 
@@ -97,6 +84,66 @@ public final class UserAccount {
       // We return an empty list in the event we cannot parse our string.
       return new ArrayList<>();
     }
+  }
+
+  /**
+   * Remove the project with the given project ID from the given project JSON string.
+   *
+   * @param p         Project JSON that corresponds to all projects associated with the current user.
+   * @param projectID ID of the project to remove.
+   * @return The same JSON string, without the project with the projectID.
+   */
+  public static String removeFromProjectJSON(String p, long projectID) {
+    ArrayList<String> projectNames = namesFromProjectJSON(p);
+    ArrayList<Long> projectIDs = idsFromProjectJSON(p);
+
+    JSONObject jsonProject = new JSONObject();
+    int i = projectIDs.indexOf(projectID);
+
+    // If this does not exist, return our input p.
+    if (i < 0) {
+      return p;
+
+    } else {
+      // Otherwise, remove the elements at location 'i' and return our JSON.
+      projectNames.remove(i);
+      projectIDs.remove(i);
+
+      jsonProject.put("ProjectIDs", String.join(",", projectNames));
+      jsonProject.put("ProjectNames", String.join(",",
+          projectIDs.stream().map(Object::toString).collect(Collectors.toList())));
+      return jsonProject.toJSONString();
+    }
+  }
+
+  /**
+   * Insert the given project ID and project name into our given project JSON string.
+   *
+   * @param p           Project JSON that corresponds to all projects associated with the current user.
+   * @param projectID   ID of the project to insert.
+   * @param projectName Name of the project ot insert.
+   * @return The same JSON string, with the new project.
+   */
+  public static String insertIntoProjectJSON(String p, long projectID, String projectName) {
+    ArrayList<String> projectNames = namesFromProjectJSON(p);
+    ArrayList<Long> projectIDs = idsFromProjectJSON(p);
+    JSONObject jsonProject = new JSONObject();
+
+    // If our project already exists in list, return the same JSON string.
+    if (projectIDs.contains(projectID)) {
+      return p;
+    }
+
+    // Otherwise, insert the ID and name into the appropriate lists.
+    projectNames.add(projectName);
+    projectIDs.add(projectID);
+
+    // Return our new JSON.
+    jsonProject.put("ProjectIDs", String.join(",", projectNames));
+    jsonProject.put("ProjectNames", String.join(",",
+        projectIDs.stream().map(Object::toString).collect(Collectors.toList())));
+
+    return jsonProject.toJSONString();
   }
 
   /**

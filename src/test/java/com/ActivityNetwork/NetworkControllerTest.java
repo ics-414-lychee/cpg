@@ -29,7 +29,7 @@ public class NetworkControllerTest {
    */
   @Test
   public void testRetrieveNetwork() {
-    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1));
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), userInfo.get(2));
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 10; i++) {
@@ -50,7 +50,7 @@ public class NetworkControllerTest {
    */
   @Test
   public void testAddChainLink() {
-    NetworkController nc = new NetworkController("TestUser", "SomeToken", 100);
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), userInfo.get(2), 100);
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 100; i++) {
@@ -69,7 +69,7 @@ public class NetworkControllerTest {
    */
   @Test
   public void testModifyNetwork() {
-    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), 100);
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), userInfo.get(2), 100);
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
@@ -92,7 +92,7 @@ public class NetworkControllerTest {
    */
   @Test
   public void testUndoNetwork() {
-    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), 100);
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), userInfo.get(2), 100);
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
@@ -119,7 +119,7 @@ public class NetworkControllerTest {
    */
   @Test
   public void testRedoNetwork() {
-    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), 100);
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), userInfo.get(2), 100);
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
@@ -146,7 +146,7 @@ public class NetworkControllerTest {
    */
   @Test
   public void testTimestampRetrieval() {
-    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), 100);
+    NetworkController nc = new NetworkController(userInfo.get(0), userInfo.get(1), userInfo.get(2), 100);
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
     long t = nc.retrieveTimestamp(networkIDList.get(0));
 
