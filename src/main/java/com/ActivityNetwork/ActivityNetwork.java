@@ -542,7 +542,7 @@ public class ActivityNetwork {
    *
    * @return The network ID.
    */
-  long getNetworkId() {
+  public long getNetworkId() {
     return networkId;
   }
 
@@ -560,7 +560,7 @@ public class ActivityNetwork {
    *
    * @return The name assigned to this network.
    */
-  String getNetworkName() {
+  public String getNetworkName() {
     return networkName;
   }
 
@@ -569,7 +569,7 @@ public class ActivityNetwork {
    *
    * @return The network deadline.
    */
-  double getHoursDeadline() {
+  public double getHoursDeadline() {
     return hoursDeadline;
   }
 }

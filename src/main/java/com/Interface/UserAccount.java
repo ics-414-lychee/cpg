@@ -4,7 +4,7 @@
 
 package com.Interface;
 
-import org.apache.commons.codec.binary.StringUtils;
+import com.ActivityNetwork.ActivityNetwork;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -76,9 +76,39 @@ public final class UserAccount {
         return new ArrayList<>();
       }
 
-      // Obtain our project ID list, and return this as a string of Longs.
+      // Obtain our project ID list, and return this as a string of names.
       nameList.addAll(Arrays.asList((jsonProject.get("ProjectNames").toString().split(","))));
       return nameList;
+
+    } catch (ParseException e) {
+      // We return an empty list in the event we cannot parse our string.
+      return new ArrayList<>();
+    }
+  }
+
+  /**
+   * Given the project JSON, return a list of the project deadlines.
+   *
+   * @param p Project JSON that corresponds to all projects associated with the current user.
+   * @return List of project deadlines associated with the current user.
+   */
+  public static ArrayList<Double> deadlinesFromProjectJSON(String p) {
+    JSONParser jsonParser = new JSONParser();
+    ArrayList<Double> deadlineList = new ArrayList<>();
+
+    try {
+      JSONObject jsonProject = (JSONObject) jsonParser.parse(p);
+
+      // If the user has no projects, then we return an empty list.
+      if (jsonProject.get("ProjectDeadlines").toString().equals("")) {
+        return new ArrayList<>();
+      }
+
+      // Obtain our project ID list, and return this as a string of Longs.
+      for (String s : jsonProject.get("ProjectDeadlines").toString().split(",")) {
+        deadlineList.add(Double.parseDouble(s));
+      }
+      return deadlineList;
 
     } catch (ParseException e) {
       // We return an empty list in the event we cannot parse our string.
@@ -96,6 +126,7 @@ public final class UserAccount {
   public static String removeFromProjectJSON(String p, long projectID) {
     ArrayList<String> projectNames = namesFromProjectJSON(p);
     ArrayList<Long> projectIDs = idsFromProjectJSON(p);
+    ArrayList<Double> projectDeadlines = deadlinesFromProjectJSON(p);
 
     JSONObject jsonProject = new JSONObject();
     int i = projectIDs.indexOf(projectID);
@@ -108,40 +139,47 @@ public final class UserAccount {
       // Otherwise, remove the elements at location 'i' and return our JSON.
       projectNames.remove(i);
       projectIDs.remove(i);
+      projectDeadlines.remove(i);
 
-      jsonProject.put("ProjectIDs", String.join(",", projectNames));
-      jsonProject.put("ProjectNames", String.join(",",
+      jsonProject.put("ProjectNames", String.join(",", projectNames));
+      jsonProject.put("ProjectIDs", String.join(",",
           projectIDs.stream().map(Object::toString).collect(Collectors.toList())));
+      jsonProject.put("ProjectDeadlines", String.join(",",
+          projectDeadlines.stream().map(Object::toString).collect(Collectors.toList())));
+
       return jsonProject.toJSONString();
     }
   }
 
   /**
-   * Insert the given project ID and project name into our given project JSON string.
+   * Insert the given project into our given project JSON string.
    *
-   * @param p           Project JSON that corresponds to all projects associated with the current user.
-   * @param projectID   ID of the project to insert.
-   * @param projectName Name of the project ot insert.
+   * @param p Project JSON that corresponds to all projects associated with the current user.
+   * @param a Activity network to insert into our project JSON.
    * @return The same JSON string, with the new project.
    */
-  public static String insertIntoProjectJSON(String p, long projectID, String projectName) {
+  public static String insertIntoProjectJSON(String p, ActivityNetwork a) {
     ArrayList<String> projectNames = namesFromProjectJSON(p);
     ArrayList<Long> projectIDs = idsFromProjectJSON(p);
+    ArrayList<Double> projectDeadlines = deadlinesFromProjectJSON(p);
     JSONObject jsonProject = new JSONObject();
 
     // If our project already exists in list, return the same JSON string.
-    if (projectIDs.contains(projectID)) {
+    if (projectIDs.contains(a.getNetworkId())) {
       return p;
     }
 
     // Otherwise, insert the ID and name into the appropriate lists.
-    projectNames.add(projectName);
-    projectIDs.add(projectID);
+    projectNames.add(a.getNetworkName());
+    projectIDs.add(a.getNetworkId());
+    projectDeadlines.add(a.getHoursDeadline());
 
     // Return our new JSON.
-    jsonProject.put("ProjectIDs", String.join(",", projectNames));
-    jsonProject.put("ProjectNames", String.join(",",
+    jsonProject.put("ProjectNames", String.join(",", projectNames));
+    jsonProject.put("ProjectIDs", String.join(",",
         projectIDs.stream().map(Object::toString).collect(Collectors.toList())));
+    jsonProject.put("ProjectDeadlines", String.join(",",
+        projectDeadlines.stream().map(Object::toString).collect(Collectors.toList())));
 
     return jsonProject.toJSONString();
   }
@@ -211,13 +249,13 @@ public final class UserAccount {
         throw new RuntimeException("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
       }
 
-      // Read our response.
+      // Read our response. Remove all HTML tags to get the JSON.
       BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
       JSONObject jsonReturned = (JSONObject) jsonParser.parse(br);
       JSONObject errorMessage = (JSONObject) jsonParser.parse(jsonReturned.get("ErrorJSON").toString());
 
       // If we have an error, return an empty list.
-      if (errorMessage.get("Error").toString().equals("False")) {
+      if (errorMessage.get("Error").toString().equalsIgnoreCase("false")) {
         httpClient.getConnectionManager().shutdown();
         return new ArrayList<>();
 

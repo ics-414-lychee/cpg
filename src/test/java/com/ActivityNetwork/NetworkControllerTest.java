@@ -1,7 +1,7 @@
 package com.ActivityNetwork;
 
 import com.Interface.UserAccount;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -12,10 +12,10 @@ import static org.junit.Assert.*;
 
 public class NetworkControllerTest {
   /** Login information to associate with a network controller. */
-  private static ArrayList<String> userInfo;
+  private ArrayList<String> userInfo;
 
-  @BeforeClass
-  public static void createAndLogin() {
+  @Before
+  public void createAndLogin() {
     String randomUsername = UUID.randomUUID().toString();
     String randomPassword = UUID.randomUUID().toString();
     UserAccount.createAccount(randomUsername, randomPassword);
@@ -33,7 +33,7 @@ public class NetworkControllerTest {
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 10; i++) {
-      networkIDList.add(nc.createNetwork("Test Network"));
+      networkIDList.add(nc.createNetwork("Test Network " + Integer.toString(i)));
     }
 
     ActivityNetwork a = nc.retrieveNetwork(networkIDList.get(0));
@@ -54,7 +54,7 @@ public class NetworkControllerTest {
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 100; i++) {
-      networkIDList.add(nc.createNetwork("Test Network"));
+      networkIDList.add(nc.createNetwork("Test Network " + Integer.toString(i)));
     }
     assertEquals((long) networkIDList.get(0), nc.retrieveNetwork(networkIDList.get(0)).getNetworkId());
     assertEquals((long) networkIDList.get(1), nc.retrieveNetwork(networkIDList.get(1)).getNetworkId());
@@ -73,7 +73,7 @@ public class NetworkControllerTest {
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
-      networkIDList.add(nc.createNetwork("Test Network"));
+      networkIDList.add(nc.createNetwork("Test Network " + Integer.toString(i)));
     }
     assertEquals(0, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
 
@@ -96,12 +96,12 @@ public class NetworkControllerTest {
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
-      networkIDList.add(nc.createNetwork("Test Network"));
+      networkIDList.add(nc.createNetwork("Test Network " + Integer.toString(i)));
     }
     assertEquals(0, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
 
     ActivityNetwork a = nc.retrieveNetwork(networkIDList.get(0));
-    a.insertNode(new ActivityNode(0, "Working Wings", "Wings are working", 5, 10, 15));
+    a.insertNode(new ActivityNode(10, "Working Wings", "Wings are working", 5, 10, 15));
     assertEquals(true, nc.modifyNetwork(a));
     assertEquals(1, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
 
@@ -110,7 +110,7 @@ public class NetworkControllerTest {
 
     assertEquals(true, nc.undoNetworkChange(networkIDList.get(0)));
     assertEquals(0, nc.retrieveNetwork(networkIDList.get(0)).getNetworkId());
-    assertEquals(false, nc.undoNetworkChange(networkIDList.get(0)));
+    assertFalse(nc.undoNetworkChange(networkIDList.get(0)));
   }
 
   /**
@@ -123,7 +123,7 @@ public class NetworkControllerTest {
     ArrayList<Long> networkIDList = new ArrayList<>(Collections.singletonList(nc.createNetwork("Test Network")));
 
     for (int i = 0; i < 5; i++) {
-      networkIDList.add(nc.createNetwork("Test Network"));
+      networkIDList.add(nc.createNetwork("Test Network " + Integer.toString(i)));
     }
     assertEquals(0, nc.retrieveNetwork(networkIDList.get(0)).getNodeList().size());
 

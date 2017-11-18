@@ -31,13 +31,14 @@ public class UserAccountTest {
     UserAccount.createAccount(randomUsername, randomPassword);
 
     ArrayList<String> userInfo = UserAccount.verifyLoginInfo(randomUsername, randomPassword);
-    assertSame(3, userInfo.size());
-    assertSame(randomUsername, userInfo.get(0));
+    assertEquals(3, userInfo.size());
+    assertEquals(randomUsername, userInfo.get(0));
 
-    assertSame(0, UserAccount.idsFromProjectJSON(userInfo.get(2)).size());
-    assertSame(0, UserAccount.namesFromProjectJSON(userInfo.get(2)).size());
+    assertEquals(0, UserAccount.idsFromProjectJSON(userInfo.get(2)).size());
+    assertEquals(0, UserAccount.namesFromProjectJSON(userInfo.get(2)).size());
+    assertEquals(0, UserAccount.deadlinesFromProjectJSON(userInfo.get(2)).size());
 
     NetworkController nc = new NetworkController(randomUsername, userInfo.get(1), userInfo.get(2));
-    assertNotSame(0, nc.createNetwork("Some Random Name"));
+    assertFalse(0 == nc.createNetwork("Some Random Name"));
   }
 }

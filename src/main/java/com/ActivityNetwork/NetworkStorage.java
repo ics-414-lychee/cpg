@@ -55,7 +55,7 @@ public final class NetworkStorage {
     }
 
     net.put("ProjectID", a.getNetworkId());
-    net.put("ProjectName", a.getNetworkName());
+    net.put("ProjectDeadline", a.getHoursDeadline());
     net.put("NodeList", nodeList);
 
     return net.toString();
@@ -65,21 +65,23 @@ public final class NetworkStorage {
    * Import the given network from a JSON string to an ActivityNetwork instance. If our string cannot be parsed, return
    * an empty network.
    *
-   * @param netString   JSON string containing our network.
-   * @param projectID   Project ID to attach to this network.
-   * @param projectName Project name to attach to this network.
+   * @param netString     JSON string containing our network.
+   * @param projectID     Project ID to attach to this network.
+   * @param hoursDeadline Deadline attached to the network to import.
+   * @param projectName   Project name to attach to this network.
    * @return An ActivityNetwork instance parsed from the given network string.
    */
-  private static ActivityNetwork importNetworkAsJSON(String netString, long projectID, String projectName) {
+  private static ActivityNetwork importNetworkAsJSON(String netString, long projectID, double hoursDeadline,
+                                                     String projectName) {
     JSONParser jsonParser = new JSONParser();
 
     try {
       JSONObject jsonNet = (JSONObject) jsonParser.parse(netString);
       ActivityNetwork a = new ActivityNetwork(projectID, projectName);
-      a.setHoursDeadline(Double.parseDouble(jsonNet.get("Deadline").toString()));
+      a.setHoursDeadline(hoursDeadline);
 
       // Obtain and iterate through our node list.
-      JSONArray nodeList = (JSONArray) jsonNet.get("NodeList");
+      JSONArray nodeList = (JSONArray) jsonNet.get("Nodes");
       for (String aNodeList : (Iterable<String>) nodeList) {
         JSONObject jsonNode = (JSONObject) jsonParser.parse(aNodeList);
 
@@ -152,15 +154,16 @@ public final class NetworkStorage {
     JSONParser jsonParser = new JSONParser();
     DefaultHttpClient httpClient = new DefaultHttpClient();
 
-    // Collect our parameters to POST.
+    // Collect our parameters to POST. We always start with a deadline of 0 hours.
     List<NameValuePair> i = new ArrayList<>(Arrays.asList(new BasicNameValuePair("username", u),
-        new BasicNameValuePair("auth", token), new BasicNameValuePair("projectname", networkName)));
+        new BasicNameValuePair("auth", token), new BasicNameValuePair("projectname", networkName),
+        new BasicNameValuePair("projectdeadline", "0")));
 
     JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i, "http://localhost/PHPWebServer/create.php");
     httpClient.getConnectionManager().shutdown();
 
     // If we have an error, return a network ID of 0.
-    return jsonReturned.get("Error").toString().equals("false") ? 0 :
+    return jsonReturned.get("Error").toString().equalsIgnoreCase("false") ? 0 :
         Long.parseLong(jsonReturned.get("ProjectID").toString());
   }
 
@@ -185,8 +188,8 @@ public final class NetworkStorage {
     httpClient.getConnectionManager().shutdown();
 
     // If we have an error, return an empty string to indicate that we were not able to save the network.
-    return (jsonReturned.get("Error").toString().equals("false")) ? "" :
-        UserAccount.insertIntoProjectJSON(projectsJSON, a.getNetworkId(), a.getNetworkName());
+    return (jsonReturned.get("Error").toString().equalsIgnoreCase("false")) ? "" :
+        UserAccount.insertIntoProjectJSON(projectsJSON, a);
   }
 
   /**
@@ -210,7 +213,7 @@ public final class NetworkStorage {
     httpClient.getConnectionManager().shutdown();
 
     // If we have an error, return an empty string to indicate that we were not able to delete the network.
-    return (jsonReturned.get("Error").toString().equals("false")) ? "" :
+    return (jsonReturned.get("Error").toString().equalsIgnoreCase("false")) ? "" :
         UserAccount.removeFromProjectJSON(projectsJSON, networkId);
   }
 
@@ -239,12 +242,20 @@ public final class NetworkStorage {
     List<NameValuePair> i = new ArrayList<>(Arrays.asList(new BasicNameValuePair("username", u),
         new BasicNameValuePair("auth", token), new BasicNameValuePair("projectid", Long.toString(networkId))));
 
-    JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i, "http://localhost/PHPWebServer/load.php");
-    httpClient.getConnectionManager().shutdown();
+    try {
+      JSONObject jsonReturned = postAndGetResponse(jsonParser, httpClient, i, "http://localhost/PHPWebServer/load.php");
+      JSONObject errorMessage = (JSONObject) jsonParser.parse(jsonReturned.get("ErrorJSON").toString());
 
-    // If we have an error, indicate that we were not able to retrieve the network.
-    return jsonReturned.get("Error").toString().equals("false") ? new ActivityNetwork(0, "Bad") :
-        importNetworkAsJSON(jsonReturned.get("NodesJSON").toString(), networkId,
-            UserAccount.namesFromProjectJSON(projectsJSON).get(j));
+      httpClient.getConnectionManager().shutdown();
+
+      // If we have an error, indicate that we were not able to retrieve the network.
+      return errorMessage.get("Error").toString().equalsIgnoreCase("false") ? new ActivityNetwork(0, "Bad") :
+          importNetworkAsJSON(jsonReturned.get("NodesJSON").toString(), networkId,
+              UserAccount.deadlinesFromProjectJSON(projectsJSON).get(j),
+              UserAccount.namesFromProjectJSON(projectsJSON).get(j));
+    }
+    catch (ParseException e) {
+      return new ActivityNetwork(0, "Bad");
+    }
   }
 }

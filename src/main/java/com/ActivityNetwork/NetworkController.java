@@ -30,7 +30,7 @@ public class NetworkController {
   /** The authentication token associated with this controller. Obtained from a successful login. */
   private String token;
 
-  /** The JSON set of project names and IDs, who are related by their indices. Obtained from a successful login. */
+  /** JSON set of project names, IDs and deadlines who are related by their indices. Obtained from successful login. */
   private String j;
 
   /**
@@ -42,6 +42,7 @@ public class NetworkController {
    * @param j                  ProjectsJSON returned from a successful login.
    * @param maximumChainLength Maximum length of our chains.
    */
+  @SuppressWarnings("WeakerAccess")
   public NetworkController(String u, String token, String j, int maximumChainLength) {
     this.u = u;
     this.token = token;
@@ -95,7 +96,7 @@ public class NetworkController {
    * @param networkID Network to load into our chain.
    * @return True if the network with the given ID exists and was loaded correctly. False otherwise.
    */
-  boolean loadNetwork(long networkID) {
+  private boolean loadNetwork(long networkID) {
     ActivityNetwork a = NetworkStorage.retrieveNetwork(token, u, j, networkID);
 
     if (a.getNetworkId() == 0) {
@@ -109,8 +110,8 @@ public class NetworkController {
   }
 
   /**
-   * Append a network to our chain, along with the given timestamp. We are now unable to "redo", so clear our removed
-   * chains.
+   * Append a network to our chain and project JSON, along with the given timestamp. We are now unable to "redo", so
+   * clear our removed chains.
    *
    * @param networkName Name to attach to the network.
    * @return The generated network ID.
@@ -120,6 +121,7 @@ public class NetworkController {
 
     ActivityNetwork a = new ActivityNetwork(networkID, networkName);
     appendToChains(a, System.currentTimeMillis());
+    j = UserAccount.insertIntoProjectJSON(j, a);
 
     removedNetworkChain.clear();
     removedTimestampChain.clear();
@@ -135,16 +137,15 @@ public class NetworkController {
    * @return True if the modification was successful. False if there exists no network here with the given network ID.
    */
   public boolean modifyNetwork(ActivityNetwork a) {
-    removedNetworkChain.clear();
-    removedNetworkChain.clear();
-
-    if (networkChain.stream().anyMatch(n -> n.getNetworkId() == a.getNetworkId())) {
-      appendToChains(a, System.currentTimeMillis());
-      return true;
-
-    } else {
+    if (networkChain.stream().noneMatch(n -> n.getNetworkId() == a.getNetworkId())) {
       return false;
     }
+
+    removedNetworkChain.clear();
+    removedNetworkChain.clear();
+
+    appendToChains(a, System.currentTimeMillis());
+    return true;
   }
 
   /**
@@ -243,11 +244,13 @@ public class NetworkController {
 
       // If we find the network, save this.
       if (a.getNetworkId() == networkID) {
+        Collections.reverse(networkChain);
         return !NetworkStorage.storeNetwork(token, u, j, a).equals("");
       }
     }
 
     // Otherwise, the network does not exist. No saving can be performed.
+    Collections.reverse(networkChain);
     return false;
   }
 
