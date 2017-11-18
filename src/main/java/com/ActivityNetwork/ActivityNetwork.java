@@ -19,6 +19,12 @@ public class ActivityNetwork {
   /** The deadline associated with network. Cannot be less than the minimal critical path sum (length). */
   private double hoursDeadline;
 
+    ///global variable for determining critical path duration*********NEWLY ADDED*******
+  public double endDuration;
+  
+  ///global variable for determining node id's on critical path********NEWLY ADDED********
+  public ArrayList<Long> critPathIds;
+  
   /**
    * Sort the current list of nodes by order of dependencies (topological sort).
    *
@@ -101,6 +107,8 @@ public class ActivityNetwork {
     this.networkName = networkName;
     this.nodeList = new ArrayList<>();
     this.hoursDeadline = 0;
+    this.endDuration = 0;
+    this.critPathIds = new ArrayList<>();
   }
 
   /**
@@ -363,7 +371,7 @@ public class ActivityNetwork {
       return finish;
 
     } else {
-      int i = 0;
+      int i = 1;
 
       // Starts at end of list and works towards front.
       while (retrieveNode(nodeId) != nodeList.get(nodeList.size() - i)) {
@@ -427,7 +435,7 @@ public class ActivityNetwork {
     if (retrieveNode(nodeId) == nodeList.get(nodeList.size())) {
       return finish - retrieveNode(nodeId).getTimes()[3];
     } else {
-      int i = 0;
+      int i = 1;
 
       // Starts at end of list and works to the front.
       while (retrieveNode(nodeId) != nodeList.get(nodeList.size() - i)) {
@@ -448,10 +456,19 @@ public class ActivityNetwork {
    * @param nodeId ID of the node to find predecessors for.
    * @return All predecessors for the the given node.
    */
-  private ArrayList<ActivityNode> findPredecessors(long nodeId) {
-    // TODO: finish predecessor search
-    return new ArrayList<>(Collections.singletonList(new ActivityNode(0, "N", "N", 0, 0, 0)));
-  }
+private ArrayList<ActivityNode> findPredecessors(long nodeId) {
+	
+	int index = 0;
+	ArrayList<ActivityNode> nodesBefore = new ArrayList<>();
+	
+	if(nodeList.get(0)!=retrieveNode(nodeId)) {//implies that if the function node is first then no predecessors exist and therefore nothing happens
+		for(index=0;nodeList.get(index)!=retrieveNode(nodeId);index++) {
+			nodesBefore.add(retrieveNode(nodeId));
+		}
+		
+	}
+	return nodesBefore;
+}
 
   /**
    * Find all successors for the node matching the given node ID.
@@ -459,10 +476,17 @@ public class ActivityNetwork {
    * @param nodeId ID of the node to find successors for.
    * @return All successors for the given node.
    */
-  private ArrayList<ActivityNode> findSuccessors(long nodeId) {
-    // TODO: finish successor search
-    return new ArrayList<>(Collections.singletonList(new ActivityNode(0, "N", "N", 0, 0, 0)));
-  }
+private ArrayList<ActivityNode> findSuccessors(long nodeId) {
+	
+	ArrayList<ActivityNode> nodesAfter = new ArrayList<>();
+	
+	if(nodeList.get(nodeList.size()-1)!=retrieveNode(nodeId)) {//implies that if the function node is last then no successors exist and therefore nothing happens
+		for(int index=1;nodeList.get(nodeList.size()-index)!=retrieveNode(nodeId);index++) {
+			nodesAfter.add(retrieveNode(nodeId));
+		}	
+	}
+	return nodesAfter;
+}
 
   /**
    * Compute the total slack given the node ID of a node in the network. The user here **MUST** check for node existence
@@ -524,10 +548,55 @@ public class ActivityNetwork {
    * @return An array of node IDs that pertain to this network, which represent the current critical path.
    */
   public ArrayList<Long> computeCriticalPath() {
-    // TODO: finish critical path computation
-    return new ArrayList<>(Arrays.asList((long) 0, (long) 1));
-  }
+	endDuration=0;
+	ArrayList<Long> startList = new ArrayList<>();
+	startList.add(nodeList.get(0).getNodeId()); //adds first node to the list and feeds list to recursion
+	recursionCritPath(0,0,startList);	//starts at first node and finds dependency path to last node
+	
+  return critPathIds; //global variable. not sure if i did this right
+  
+}
+//@param index = current index of dependency node followed
+// @param nodeDuration = total duration of all previous nodes visited
+//@param nodeIds = list of all dependencies visited
 
+public void recursionCritPath(int index, double nodeDuration, ArrayList<Long> nodeIds) {
+	int depIndex=0;//keeps track of where the dependency node is located in nodeList
+	double previousDuration = nodeDuration;//first previousDuration value = 0
+	ArrayList<Long> idList = new ArrayList<>(nodeIds); // first idList values = first node located in nodeList
+	
+	if(nodeList.get(index).getDependencies().size()!=0) {//node has dependencies to follow
+		
+		Set<Long> depSet = nodeList.get(index).getDependencies();//grabs dependencies of node 
+		ArrayList<Long> depList = new ArrayList<>(depSet);		//and converts it to arrayList
+		
+		for(int i=0;i<depList.size();i++) {//grabs dependency id and locates the index
+			long id = depList.get(i);	// of where the dependency is located in nodeList
+			while(retrieveNode(id)!=nodeList.get(depIndex)) {
+				depIndex++;		
+			}
+			idList.add(id);								//deposits dependency to list to keep track of unique path
+			double duration = nodeList.get(index).getTimes()[3];
+			double total = duration + previousDuration;//tracks duration of unique path
+			recursionCritPath(depIndex,total,idList);
+			depIndex=0;		//starts index back to the front of list on next iteration
+		}
+		
+	}
+	else {//if node has no dependencies then node is last node
+		idList.add(nodeList.get(index).getNodeId());//adds last node id to list
+		double duration=nodeList.get(index).getTimes()[3];//grabs duration of last node
+		double total = duration + previousDuration;//total duration time of specific path
+		if(total>endDuration) { //manipulation of global variables. not sure if this is correct syntax to manipulate (not using this.variable syntax)
+			endDuration=total;
+			critPathIds.clear();
+			critPathIds.addAll(idList);
+		}
+	}	//end of if/else block
+}//end of recursionCritPath
+  
+  
+  
   /**
    * Accessor method for the network's starting node ID.
    *
