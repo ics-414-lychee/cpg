@@ -548,48 +548,67 @@ public class ActivityNetwork {
    * @return An array of node IDs that pertain to this network, which represent the current critical path.
    */
   public ArrayList<Long> computeCriticalPath() {
+    // Return an empty list if our network is empty.
+    if (nodeList.isEmpty()) {
+      return new ArrayList<>();
+    }
+
     endDuration = 0;
     ArrayList<Long> startList = new ArrayList<>();
-    startList.add(nodeList.get(0).getNodeId()); //adds first node to the list and feeds list to recursion
-    recursionCritPath(0, 0, startList);  //starts at first node and finds dependency path to last node
 
-    return critPathIds; //global variable. not sure if i did this right
+    // Add first node to the list and feeds list to recursion.
+    startList.add(nodeList.get(0).getNodeId());
+    recursionCritPath(0, 0, startList);
 
+    return critPathIds;
   }
 
   /**
    * Recursively determine the critical path.
    *
-   * @param index Current index of dependency node followed.
+   * @param index        Current index of dependency node followed.
    * @param nodeDuration Total duration of all previous nodes visited.
-   * @param nodeIds List of all dependencies visited
+   * @param nodeIds      List of all dependencies visited
    */
   private void recursionCritPath(int index, double nodeDuration, ArrayList<Long> nodeIds) {
-    int depIndex = 0;//keeps track of where the dependency node is located in nodeList
-    ArrayList<Long> idList = new ArrayList<>(nodeIds); // first idList values = first node located in nodeList
+    int depIndex = 0;// Keep track of where the dependency node is located in nodeList.
+    ArrayList<Long> idList = new ArrayList<>(nodeIds); // First idList values = first node located in nodeList.
 
-    if (nodeList.get(index).getDependencies().size() != 0) {//node has dependencies to follow
+    // Node has dependencies to follow.
+    if (nodeList.get(index).getDependencies().size() != 0) {
+      // Grab dependencies of node and convert it to arrayList.
+      Set<Long> depSet = nodeList.get(index).getDependencies();
+      ArrayList<Long> depList = new ArrayList<>(depSet);
 
-      Set<Long> depSet = nodeList.get(index).getDependencies();//grabs dependencies of node
-      ArrayList<Long> depList = new ArrayList<>(depSet);    //and converts it to arrayList
-
-      for (Long aDepList : depList) {//grabs dependency id and locates the index
-        long id = aDepList;  // of where the dependency is located in nodeList
+      // Grab dependency ID and locate the index of where dependency is located in nodeList.
+      for (Long aDepList : depList) {
+        long id = aDepList;
         while (retrieveNode(id) != nodeList.get(depIndex)) {
           depIndex++;
         }
-        idList.add(id);                //deposits dependency to list to keep track of unique path
+
+        // Deposit dependency to list to keep track of unique path.
+        idList.add(id);
         double duration = nodeList.get(index).getTimes()[3];
-        double total = duration + nodeDuration;//tracks duration of unique path
+
+        // Track duration of unique path.
+        double total = duration + nodeDuration;
         recursionCritPath(depIndex, total, idList);
-        depIndex = 0;    //starts index back to the front of list on next iteration
+
+        // Starts index back to the front of list on next iteration.
+        depIndex = 0;
       }
 
-    } else {//if node has no dependencies then node is last node
-      idList.add(nodeList.get(index).getNodeId());//adds last node id to list
-      double duration = nodeList.get(index).getTimes()[3];//grabs duration of last node
-      double total = duration + nodeDuration;//total duration time of specific path
-      if (total > endDuration) { //manipulation of global variables. not sure if this is correct syntax to manipulate (not using this.variable syntax)
+    } else {
+      // If node has no dependencies then node is last node.
+
+      // Add last node ID to list and grab duration of last node.
+      idList.add(nodeList.get(index).getNodeId());
+      double duration = nodeList.get(index).getTimes()[3];
+
+      // Total duration time of specific path.
+      double total = duration + nodeDuration;
+      if (total > endDuration) {
         endDuration = total;
         critPathIds.clear();
         critPathIds.addAll(idList);
