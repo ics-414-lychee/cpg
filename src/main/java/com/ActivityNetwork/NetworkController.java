@@ -245,7 +245,16 @@ public class NetworkController {
       // If we find the network, save this.
       if (a.getNetworkId() == networkID) {
         Collections.reverse(networkChain);
-        return !NetworkStorage.storeNetwork(token, u, j, a).equals("");
+
+        // Update our Project JSON if successful.
+        String response = NetworkStorage.storeNetwork(token, u, j, a);
+        if (!response.equals("")) {
+          j = response;
+          return true;
+
+        } else {
+          return false;
+        }
       }
     }
 
@@ -276,7 +285,12 @@ public class NetworkController {
     removedTimestampChain.clear();
 
     // We must remove from the chains, and delete the network from the database.
-    return removedFromChains && !NetworkStorage.deleteNetwork(token, u, j, networkID).equals("");
+    String response = NetworkStorage.deleteNetwork(token, u, j, networkID);
+    if (!response.equals("")) {
+      j = response;
+    }
+
+    return removedFromChains && !response.equals("");
   }
 
   /**
@@ -296,5 +310,14 @@ public class NetworkController {
 
     // The network does not exist.
     return -1;
+  }
+
+  /**
+   * Accessor method for the most current project JSON.
+   *
+   * @return The most current project JSON.
+   */
+  public String getProjectJSON() {
+    return j;
   }
 }
