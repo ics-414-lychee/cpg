@@ -74,7 +74,7 @@ class CommandLineInterface {
    */
   boolean yesOrNoQuestion(String query) {
     String response = readLine(query + " [Y/N]: ");
-    while (!verifyResponse(response, new ArrayList<>(Arrays.asList("Y", "N")))) {
+    while (!verifyResponse(response, new ArrayList<>(Arrays.asList("Y", "N", "y", "n")))) {
       System.out.println("Invalid response. Please enter 'Y' for yes, or 'N' for no.");
       response = readLine(query + " [Y/N]: ");
     }

@@ -233,7 +233,7 @@ class CommandLineProject extends CommandLineInterface {
    */
   private void addNodeConsole(ActivityNetwork w, String nodeName) {
     if (w.isNodeInNetwork(nodeName)) {
-      System.out.println("Node exists in network. Please choose a unique name.");
+      System.out.println("Node exists in network. Please choose a unique name.\n");
       return;
     }
 
@@ -248,13 +248,14 @@ class CommandLineProject extends CommandLineInterface {
     double pessimisticTime = getPositiveTime("pessimistic");
     Set<Long> dependencies = getValidDependencies(w, nodeName);
 
-    while (!w.setHoursDeadline(getPositiveTime("deadline"))) {
-      System.out.println("Deadline is not realistic. Please choose a longer deadline.");
-    };
-
     ActivityNode n = new ActivityNode(nodeID, nodeName, description, optimisticTime, normalTime, pessimisticTime);
     n.setDependencies(dependencies);
     w.insertNode(n);
+
+    System.out.println();
+    while (!w.setHoursDeadline(getPositiveTime("deadline"))) {
+      System.out.println("Deadline is not realistic. Please choose a longer deadline.\n");
+    }
   }
 
   /**
@@ -265,7 +266,7 @@ class CommandLineProject extends CommandLineInterface {
    */
   private void editNodeConsole(ActivityNetwork w, String nodeName) {
     if (!w.isNodeInNetwork(nodeName)) {
-      System.out.println("Node does not exist in network. Please choose an existing node.");
+      System.out.println("Node does not exist in network. Please choose an existing node.\n");
       return;
     }
     Long nodeID = w.nodeIdFromName(nodeName);
@@ -281,7 +282,7 @@ class CommandLineProject extends CommandLineInterface {
         case "name":
           String name = updateDesired ? readLine("Please enter a new node name: ") : n.getName();
           while (w.isNodeInNetwork(nodeName) && updateDesired) {
-            System.out.println("There exists a node in the project with that name. Please choose another. ");
+            System.out.println("There exists a node in the project with that name. Please choose another. \n");
             name = readLine("Please enter a new node name: ");
           }
           n.setName(name);
@@ -313,14 +314,15 @@ class CommandLineProject extends CommandLineInterface {
       }
     }
 
+    // Modification is node removal and insertion.
+    System.out.println();
+    w.deleteNode(nodeID);
+    w.insertNode(n);
+
     // User has to update their deadline if they change the times.
     if (timeHasChanged) {
       w.setHoursDeadline(getPositiveTime("deadline"));
     }
-
-    // Modification is node removal and insertion.
-    w.deleteNode(nodeID);
-    w.insertNode(n);
   }
 
   /**
@@ -331,7 +333,7 @@ class CommandLineProject extends CommandLineInterface {
    * @param networkID Network ID of the desired network to modify.
    */
   void projectSpecificScreen(NetworkController nc, Long networkID) {
-    boolean successfulSelection = false, printMenu = true;
+    boolean successfulSelection = false, printMenu = true, networkChanged = false;
 
     while (!successfulSelection) {
       // First, get the desired command and copy the current instance of our network.
@@ -346,10 +348,12 @@ class CommandLineProject extends CommandLineInterface {
 
         case "add":
           addNodeConsole(w, command[1]);
+          networkChanged = true;
           break;
 
         case "edit":
           editNodeConsole(w, command[1]);
+          networkChanged = true;
           break;
 
         case "slack-total":
@@ -363,8 +367,10 @@ class CommandLineProject extends CommandLineInterface {
           break;
 
         case "set-deadline":
-          System.out.println((!w.setHoursDeadline(getPositiveTime("deadline"))) ? "Deadline changed successfully. " :
+          System.out.println(w.setHoursDeadline(getPositiveTime("deadline")) ? "Deadline changed successfully. " :
               "Deadline not changed. Time is unrealistic. ");
+          System.out.println();
+          networkChanged = true;
           break;
 
         case "slack-free":
@@ -374,18 +380,22 @@ class CommandLineProject extends CommandLineInterface {
 
         case "view-network":
           System.out.println(Arrays.toString(w.getNodeList().toArray()));
+          System.out.println();
           break;
 
         case "view-critical":
           System.out.println(Arrays.toString(w.computeCriticalPath().toArray()));
+          System.out.println();
           break;
 
         case "undo":
-          nc.undoNetworkChange(networkID);
+          System.out.println((nc.undoNetworkChange(networkID)) ? "Action undone." : "No action undone. ");
+          System.out.println();
           break;
 
         case "redo":
-          nc.redoNetworkChange(networkID);
+          System.out.println((nc.redoNetworkChange(networkID)) ? "Action redone." : "No action redone. ");
+          System.out.println();
           break;
 
         case "menu":
@@ -394,7 +404,10 @@ class CommandLineProject extends CommandLineInterface {
       }
 
       // Commit our changes to our network chains.
-      nc.modifyNetwork(w);
+      if (networkChanged) {
+        nc.modifyNetwork(w);
+        networkChanged = false;
+      }
     }
 
     // Save our changes upon exit.
