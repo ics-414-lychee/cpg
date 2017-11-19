@@ -82,21 +82,23 @@ public final class NetworkStorage {
 
       // Obtain and iterate through our node list.
       JSONArray nodeList = (JSONArray) jsonNet.get("Nodes");
-      for (String aNodeList : (Iterable<String>) nodeList) {
-        JSONObject jsonNode = (JSONObject) jsonParser.parse(aNodeList);
+      for (Object nodeObject : nodeList.toArray()) {
+        JSONArray node = (JSONArray) nodeObject;
 
         // Build our node without the dependencies.
-        ActivityNode n = new ActivityNode(Long.parseLong(jsonNode.get("NodeID").toString()),
-            jsonNode.get("NodeName").toString(), jsonNode.get("Description").toString(),
-            Double.parseDouble(jsonNode.get("OptimisticTime").toString()),
-            Double.parseDouble(jsonNode.get("NormalTime").toString()),
-            Double.parseDouble(jsonNode.get("PessimisticTime").toString()));
+        ActivityNode n = new ActivityNode(Long.parseLong(node.get(1).toString()), node.get(2).toString(),
+            node.get(7).toString(), Double.parseDouble(node.get(3).toString()),
+            Double.parseDouble(node.get(4).toString()), Double.parseDouble(node.get(5).toString()));
 
-        // Our dependencies are stored as a comma separated string. Insert node after parsing.
+        // Our dependencies are stored as a comma separated string.
         HashSet<Long> dependencies = new HashSet<>();
-        for (String s : ((String) jsonNode.get("DependencyNodeID")).split(",")) {
-          dependencies.add(Long.parseLong(s));
+        for (String s : node.get(6).toString().split(",")) {
+          if (!s.equals("0")) {
+            dependencies.add(Long.parseLong(s));
+          }
         }
+
+        // Insert into node.
         n.setDependencies(dependencies);
         a.insertNode(n);
       }
