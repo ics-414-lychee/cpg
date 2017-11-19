@@ -556,8 +556,7 @@ public class ActivityNetwork {
     endDuration = 0;
     ArrayList<Long> startList = new ArrayList<>();
 
-    // Add first node to the list and feeds list to recursion.
-    startList.add(nodeList.get(0).getNodeId());
+    // Begin the recursion!
     recursionCritPath(0, 0, startList);
 
     return critPathIds;
