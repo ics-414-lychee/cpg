@@ -42,7 +42,7 @@ class CommandLineLogin extends CommandLineInterface {
       }
     }
 
-    System.out.println("\nYou have exceeded the number of login attempts.");
+    System.out.println("\nYou have exceeded the number of login attempts.\n");
     printHeader();
 
     return new ArrayList<>();
@@ -53,18 +53,16 @@ class CommandLineLogin extends CommandLineInterface {
    */
   private void accountCreationConsole() {
     int passwordCreationAttempts = 0;
-
-    // First, request the username.
     printHeader();
-    String username = readLine("Desired Username: ");
 
     // Then, request the password. This must be entered within 3 attempts.
     while (passwordCreationAttempts++ < 3) {
+      String username = readLine("Desired Username: ");
       String password1 = readPassword("Desired Password: ");
       String password2 = readPassword("Enter Your Password Again: ");
 
       if (!password1.equals(password2)) {
-        System.out.print("Incorrect password. Please try again.\n");
+        System.out.println("Passwords do not match. Please try again.\n");
 
       } else {
         String result = UserAccount.createAccount(username, password1);
@@ -73,6 +71,7 @@ class CommandLineLogin extends CommandLineInterface {
         if (result.equals("")) {
           System.out.println("Account successfully created. Please login.\n");
           printHeader();
+          return;
 
         } else {
           System.out.println("Error: " + result + "\n");
@@ -80,6 +79,8 @@ class CommandLineLogin extends CommandLineInterface {
         }
       }
     }
+
+    System.out.println("You have exceeded the number of creation attempts.\n");
   }
 
   /**

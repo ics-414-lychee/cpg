@@ -114,10 +114,13 @@ public class NetworkController {
    * clear our removed chains.
    *
    * @param networkName Name to attach to the network.
-   * @return The generated network ID.
+   * @return 0 if there is an error. Otherwise, the generated network ID.
    */
   public long createNetwork(String networkName) {
     long networkID = NetworkStorage.createNetwork(token, u, networkName);
+    if (networkID == 0) {
+      return 0;
+    }
 
     ActivityNetwork a = new ActivityNetwork(networkID, networkName);
     appendToChains(a, System.currentTimeMillis());

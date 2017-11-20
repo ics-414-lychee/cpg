@@ -73,12 +73,12 @@ class CommandLineProject extends CommandLineInterface {
    */
   Long projectOverviewScreen(NetworkController nc) {
     boolean successfulSelection = false, printMenu = true;
-    ArrayList<String> names = UserAccount.namesFromProjectJSON(nc.getProjectJSON());
     long networkID = 0;
 
     while (!successfulSelection) {
       // First, get the desired command.
       String[] command = acceptProjectOverviewCommand(printMenu);
+      ArrayList<String> names = UserAccount.namesFromProjectJSON(nc.getProjectJSON());
       printMenu = false;
 
       switch (command[0]) {
@@ -101,8 +101,12 @@ class CommandLineProject extends CommandLineInterface {
           break;
 
         case "add":
-          successfulSelection = true;
           networkID = nc.createNetwork(command[1]);
+          if (networkID == 0) {
+            System.out.println("\nNetwork already exists. Please choose another name.\n");
+          } else {
+            successfulSelection = true;
+          }
           break;
 
         case "edit":
@@ -153,7 +157,7 @@ class CommandLineProject extends CommandLineInterface {
       printHeader("Project Specific");
 
       System.out.println("Commands: exit");
-      Arrays.asList("add          [activity-name]", "edit         [activity-name]", "remove       [activity-name]",
+      Arrays.asList("add          [activity-name]", "edit         [activity-name]", "delete       [activity-name]",
           "slack-total  [activity-name]", "slack-safety [activity-name]", "slack-free   [activity-name]",
           "set-deadline", "view-network", "view-critical", "undo", "redo",
           "menu").forEach(s -> System.out.println("          " + s));
@@ -168,13 +172,13 @@ class CommandLineProject extends CommandLineInterface {
         System.out.println("Invalid response. Please follow the format specified for the commands.");
         response = readLine("Please enter your option: ").split("\\s+");
 
-      } else if (!verifyResponse(response[0], new ArrayList<>(Arrays.asList("exit", "add", "edit", "remove",
+      } else if (!verifyResponse(response[0], new ArrayList<>(Arrays.asList("exit", "add", "edit", "delete",
           "slack-total", "slack-safety", "slack-free", "set-deadline", "view-network", "view-critical", "undo",
-          "redo")))) {
+          "redo", "menu")))) {
         System.out.println("Invalid response. Please only use the specified commands.");
         response = readLine("Please enter your option: ").split("\\s+");
 
-      } else if (verifyResponse(response[0], new ArrayList<>(Arrays.asList("add", "edit", "remove", "slack-total",
+      } else if (verifyResponse(response[0], new ArrayList<>(Arrays.asList("add", "edit", "delete", "slack-total",
           "slack-free"))) && response.length != 2) {
         System.out.println("Invalid response. No activity name.");
         response = readLine("Please enter your option: ").split("\\s+");
@@ -212,11 +216,11 @@ class CommandLineProject extends CommandLineInterface {
       } else if (dependency.equals(nodeName)) {
         System.out.println("An activity cannot depend on itself. ");
 
-      } else if (!w.isNodeInNetwork(nodeName)) {
+      } else if (!w.isNodeInNetwork(dependency)) {
         System.out.println("Node does not exist. Please choose a node that exists.");
 
       } else {
-        dependencies.add(w.nodeIdFromName(nodeName));
+        dependencies.add(w.nodeIdFromName(dependency));
 
       }
     }
@@ -247,6 +251,12 @@ class CommandLineProject extends CommandLineInterface {
     double normalTime = getPositiveTime("normal");
     double pessimisticTime = getPositiveTime("pessimistic");
     Set<Long> dependencies = getValidDependencies(w, nodeName);
+
+    // Times are unrealistic. Do not create the node.
+    if (pessimisticTime < normalTime || normalTime < optimisticTime || pessimisticTime < optimisticTime) {
+      System.out.println("Times are not realistic. Optimistic < Normal < Pessimistic.\n");
+      return;
+    }
 
     ActivityNode n = new ActivityNode(nodeID, nodeName, description, optimisticTime, normalTime, pessimisticTime);
     n.setDependencies(dependencies);
@@ -319,9 +329,12 @@ class CommandLineProject extends CommandLineInterface {
     w.deleteNode(nodeID);
     w.insertNode(n);
 
-    // User has to update their deadline if they change the times.
+    System.out.println();
     if (timeHasChanged) {
-      w.setHoursDeadline(getPositiveTime("deadline"));
+      // User has to update their deadline if they change the times.
+      while (!w.setHoursDeadline(getPositiveTime("deadline"))) {
+        System.out.println("Deadline is not realistic. Please choose a longer deadline.\n");
+      }
     }
   }
 
@@ -356,14 +369,32 @@ class CommandLineProject extends CommandLineInterface {
           networkChanged = true;
           break;
 
+        case "delete":
+          if (!w.isNodeInNetwork(command[1])) {
+            System.out.println("The node does not exist.\n");
+          } else {
+            w.deleteNode(w.nodeIdFromName(command[1]));
+            System.out.println("The node has been deleted.\n");
+            networkChanged = true;
+          }
+          break;
+
         case "slack-total":
-          System.out.println("The total slack of \"" + command[1] + "\" is " +
-              w.computeTotalSlack(w.nodeIdFromName(command[1])));
+          if (!w.isNodeInNetwork(command[1])) {
+            System.out.println("The node does not exist.\n");
+          } else {
+            System.out.println("The total slack of \"" + command[1] + "\" is " +
+                w.computeTotalSlack(w.nodeIdFromName(command[1])));
+          }
           break;
 
         case "slack-safety":
-          System.out.println("The safety slack of \"" + command[1] + "\" is " +
-              w.computeSafetySlack(w.nodeIdFromName(command[1])));
+          if (!w.isNodeInNetwork(command[1])) {
+            System.out.println("The node does not exist.\n");
+          } else {
+            System.out.println("The safety slack of \"" + command[1] + "\" is " +
+                w.computeSafetySlack(w.nodeIdFromName(command[1])));
+          }
           break;
 
         case "set-deadline":
@@ -374,18 +405,24 @@ class CommandLineProject extends CommandLineInterface {
           break;
 
         case "slack-free":
-          System.out.println("The free slack of \"" + command[1] + "\" is " +
-              w.computeFreeSlack(w.nodeIdFromName(command[1])));
+          if (!w.isNodeInNetwork(command[1])) {
+            System.out.println("The node does not exist.\n");
+          } else {
+            System.out.println("The free slack of \"" + command[1] + "\" is " +
+                w.computeFreeSlack(w.nodeIdFromName(command[1])));
+          }
           break;
 
         case "view-network":
-          System.out.println(Arrays.toString(w.getNodeList().toArray()));
-          System.out.println();
+          System.out.print("| ");
+          w.getNodeList().forEach(n -> System.out.print(n.getName() + " | "));
+          System.out.println("\n");
           break;
 
         case "view-critical":
-          System.out.println(Arrays.toString(w.computeCriticalPath().toArray()));
-          System.out.println();
+          System.out.print("| ");
+          w.computeCriticalPath().forEach(n -> System.out.print(w.nodeNameFromId(n) + " | "));
+          System.out.println("\n");
           break;
 
         case "undo":
