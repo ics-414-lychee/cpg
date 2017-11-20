@@ -204,6 +204,23 @@ public class ActivityNetwork {
   }
 
   /**
+   * Get the node name associated with the node of the given ID.
+   *
+   * @param nodeID ID of the node to search for.
+   * @return Empty string if a node does not exist with that name. Otherwise, the node name of the node with the
+   * given ID.
+   */
+  public String nodeNameFromId(long nodeID) {
+    for (ActivityNode n :  this.nodeList) {
+      if (n.getNodeId() == nodeID) {
+        return n.getName();
+      }
+    }
+
+    return "";
+  }
+
+  /**
    * Delete the node in the network with the given node ID. Checks for node existence.
    *
    * @param nodeId ID of the node to delete.
@@ -556,7 +573,7 @@ public class ActivityNetwork {
     endDuration = 0;
     ArrayList<Long> startList = new ArrayList<>();
 
-    // Begin the recursion!
+    // Begin the recursion.
     recursionCritPath(0, 0, startList);
 
     return critPathIds;
@@ -570,7 +587,7 @@ public class ActivityNetwork {
    * @param nodeIds      List of all dependencies visited
    */
   private void recursionCritPath(int index, double nodeDuration, ArrayList<Long> nodeIds) {
-    int depIndex = 0;// Keep track of where the dependency node is located in nodeList.
+    int depIndex = 0; // Keep track of where the dependency node is located in nodeList.
     ArrayList<Long> idList = new ArrayList<>(nodeIds); // First idList values = first node located in nodeList.
 
     // Node has dependencies to follow.
