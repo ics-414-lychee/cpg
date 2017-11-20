@@ -559,12 +559,12 @@ public class ActivityNetwork {
     }
   }
 
-  /**
-   * Compute the critical path of the current network, and return a sorted array of node IDs that represent this path.
-   *
-   * @return An array of node IDs that pertain to this network, which represent the current critical path.
-   */
-  public ArrayList<Long> computeCriticalPath() {
+/**
+ * Compute the critical path of the current network, and return a sorted array of node IDs that represent this path.
+ *
+ * @return An array of node IDs that pertain to this network, which represent the current critical path.
+ */
+public ArrayList<Long> computeCriticalPath() {
     // Return an empty list if our network is empty.
     if (nodeList.isEmpty()) {
       return new ArrayList<>();
@@ -572,9 +572,13 @@ public class ActivityNetwork {
 
     endDuration = 0;
     ArrayList<Long> startList = new ArrayList<>();
+    ArrayList<ActivityNode> reverseList = new ArrayList<>();
+    for(int i = 1;i<=nodeList.size();i++) {
+    	reverseList.add(nodeList.get(nodeList.size()-i));
+    }
 
     // Begin the recursion.
-    recursionCritPath(0, 0, startList);
+    recursionCritPath(0, 0, startList,reverseList);
 
     return critPathIds;
   }
@@ -586,30 +590,30 @@ public class ActivityNetwork {
    * @param nodeDuration Total duration of all previous nodes visited.
    * @param nodeIds      List of all dependencies visited
    */
-  private void recursionCritPath(int index, double nodeDuration, ArrayList<Long> nodeIds) {
+  private void recursionCritPath(int index, double nodeDuration, ArrayList<Long> nodeIds,ArrayList<ActivityNode> reverseList) {
     int depIndex = 0; // Keep track of where the dependency node is located in nodeList.
     ArrayList<Long> idList = new ArrayList<>(nodeIds); // First idList values = first node located in nodeList.
 
     // Node has dependencies to follow.
-    if (nodeList.get(index).getDependencies().size() != 0) {
+    if (reverseList.get(index).getDependencies().size() != 0) {
       // Grab dependencies of node and convert it to arrayList.
-      Set<Long> depSet = nodeList.get(index).getDependencies();
+      Set<Long> depSet = reverseList.get(index).getDependencies();
       ArrayList<Long> depList = new ArrayList<>(depSet);
 
       // Grab dependency ID and locate the index of where dependency is located in nodeList.
       for (Long aDepList : depList) {
         long id = aDepList;
-        while (retrieveNode(id) != nodeList.get(depIndex)) {
+        while (retrieveNode(id) != reverseList.get(depIndex)) {
           depIndex++;
         }
 
         // Deposit dependency to list to keep track of unique path.
         idList.add(id);
-        double duration = nodeList.get(index).getTimes()[3];
+        double duration = reverseList.get(index).getTimes()[3];
 
         // Track duration of unique path.
         double total = duration + nodeDuration;
-        recursionCritPath(depIndex, total, idList);
+        recursionCritPath(depIndex, total, idList,reverseList);
 
         // Starts index back to the front of list on next iteration.
         depIndex = 0;
@@ -619,8 +623,8 @@ public class ActivityNetwork {
       // If node has no dependencies then node is last node.
 
       // Add last node ID to list and grab duration of last node.
-      idList.add(nodeList.get(index).getNodeId());
-      double duration = nodeList.get(index).getTimes()[3];
+      idList.add(reverseList.get(index).getNodeId());
+      double duration = reverseList.get(index).getTimes()[3];
 
       // Total duration time of specific path.
       double total = duration + nodeDuration;
