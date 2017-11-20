@@ -2,6 +2,7 @@ package com.ActivityNetwork;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 import org.junit.*;
 
@@ -147,5 +148,52 @@ public class ActivityNetworkTest {
     // Deletion also triggers another sort.
     assertEquals(9, testNetwork.getStartNodeId());
     assertEquals(7, testNetwork.getNodeList().get(1).getNodeId());
+  }
+
+  /**
+   * Verify that each slack computation does not crash, and produces distinct results for different networks.
+   */
+  @Test
+  public void testSlackComputations() {
+    ActivityNode a = new ActivityNode(1, "A", "AA", 10, 15, 20);
+    ActivityNode b = new ActivityNode(2, "B", "BB", 10, 15, 20);
+
+    assertTrue(testNetwork.insertNode(a) && testNetwork.insertNode(b));
+    assertTrue(testNetwork.setDependencies(2, new HashSet<>(1)));
+
+    double[] totalSlack = {testNetwork.computeTotalSlack(1), testNetwork.computeTotalSlack(2)};
+    double[] freeSlack = {testNetwork.computeFreeSlack(1), testNetwork.computeFreeSlack(2)};
+    double[] safetySlack = {testNetwork.computeSafetySlack(1), testNetwork.computeSafetySlack(2)};
+
+    assertTrue(Math.abs(totalSlack[0] - totalSlack[1]) > Math.ulp(totalSlack[0]));
+    assertTrue(Math.abs(freeSlack[0] - freeSlack[1]) > Math.ulp(freeSlack[0]));
+    assertTrue(Math.abs(safetySlack[0] - safetySlack[1]) > Math.ulp(safetySlack[0]));
+  }
+
+  /**
+   * Verify that the critical path time is different as you add more and more nodes.
+   */
+  @Test
+  public void testCriticalPathTime() {
+    ActivityNode a = new ActivityNode(1, "A", "AA", 10, 15, 20);
+    ActivityNode b = new ActivityNode(2, "B", "BB", 10, 15, 20);
+    ActivityNode c = new ActivityNode(3, "C", "CC", 10, 15, 20);
+
+    HashSet<Long> dependenciesB = new HashSet<>(), dependenciesC = new HashSet<>();
+    dependenciesB.add((long) 1);
+    dependenciesC.add((long) 2);
+
+    assertTrue(testNetwork.insertNode(a));
+    assertEquals(15, testNetwork.computeCriticalPathTime(), Math.ulp(testNetwork.computeCriticalPathTime()));
+
+    assertTrue(testNetwork.insertNode(b));
+    assertEquals(15, testNetwork.computeCriticalPathTime(), Math.ulp(testNetwork.computeCriticalPathTime()));
+
+    assertTrue(testNetwork.setDependencies(2, dependenciesB));
+    assertEquals(30, testNetwork.computeCriticalPathTime(), Math.ulp(testNetwork.computeCriticalPathTime()));
+
+    assertTrue(testNetwork.insertNode(c));
+    assertTrue(testNetwork.setDependencies(3, dependenciesC));
+    assertEquals(45, testNetwork.computeCriticalPathTime(), Math.ulp(testNetwork.computeCriticalPathTime()));
   }
 }

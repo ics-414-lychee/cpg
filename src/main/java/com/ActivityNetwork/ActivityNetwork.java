@@ -303,7 +303,7 @@ public class ActivityNetwork {
    *
    * @return The sum of the critical path times in hours.
    */
-  private double computeCriticalPathTime() {
+  public double computeCriticalPathTime() {
     List<Double> eta = computeCriticalPath().stream().map(n_i ->
         retrieveNodeReference(n_i).getTimes()[3]).collect(Collectors.toList());
 
