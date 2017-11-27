@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Main-Class: com.Interface.CommandLineRunner
+Main-Class: com.BaseInterface.CommandLineRunner
 

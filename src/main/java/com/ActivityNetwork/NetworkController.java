@@ -1,6 +1,6 @@
 package com.ActivityNetwork;
 
-import com.Interface.UserAccount;
+import com.BaseInterface.UserAccount;
 
 import java.util.ArrayList;
 import java.util.Collections;

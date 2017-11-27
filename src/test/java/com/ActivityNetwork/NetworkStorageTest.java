@@ -6,7 +6,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import com.Interface.UserAccount;
+import com.BaseInterface.UserAccount;
 
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;

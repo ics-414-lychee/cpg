@@ -1,7 +1,6 @@
-package com.Interface;
+package com.BaseInterface;
 
 import com.ActivityNetwork.NetworkController;
-import com.ActivityNetwork.NetworkStorage;
 import org.junit.Test;
 
 import java.util.ArrayList;

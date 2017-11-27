@@ -1,4 +1,4 @@
-package com.Interface;
+package com.BaseInterface;
 
 import com.ActivityNetwork.ActivityNetwork;
 import com.ActivityNetwork.ActivityNode;

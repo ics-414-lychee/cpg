@@ -2,7 +2,7 @@
 /// This file contains the UserAccount class, which will interact with the backend to store and retrieve account info.
 ///
 
-package com.Interface;
+package com.BaseInterface;
 
 import com.ActivityNetwork.ActivityNetwork;
 import org.apache.http.HttpResponse;

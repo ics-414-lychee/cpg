@@ -1,6 +1,6 @@
 package com.ActivityNetwork;
 
-import com.Interface.UserAccount;
+import com.BaseInterface.UserAccount;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;

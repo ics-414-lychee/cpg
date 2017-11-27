@@ -1,6 +1,6 @@
 package com.ActivityNetwork;
 
-import com.Interface.UserAccount;
+import com.BaseInterface.UserAccount;
 import org.junit.Before;
 import org.junit.Test;
 
