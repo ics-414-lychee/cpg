@@ -44,43 +44,37 @@ public class ActivityAddWindow {
    *
    * @param nc
    */
-  @SuppressWarnings("BoundFieldAssignment")
-  public ActivityAddWindow(NetworkController nc) {
-    this.nc = nc;
+//  @SuppressWarnings("BoundFieldAssignment")
+//  public ActivityAddWindow(NetworkController nc) {
+//    this.nc = nc;
+//
+//    submitActivityButton.addActionListener(new SubmitButtonClicked());
+//
+//    dependencyList = new JList(nc.);
+//    dependencyList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+//    dependencyList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+//  }
 
-    submitActivityButton.addActionListener(new SubmitButtonClicked());
+//  private class SubmitButtonClicked implements ActionListener {
+//    private ActivityNode n;
 
-    dependencyList = new JList(nc.);
-    dependencyList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-    dependencyList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-  }
+//    public SubmitButtonClicked() {
+//      this.n = new ActivityNode(0, nameField.getText(), descriptionField.getText(), Double.valueOf(optimalTimeField
+//          .getText()), Double.valueOf(normalTimeField.getText()), new HashSet<>(dependencyList.as));
+//    }
 
-  private class SubmitButtonClicked implements ActionListener {
-    private ActivityNode n;
-
-    public SubmitButtonClicked() {
-      this.n = new ActivityNode(0, nameField.getText(), descriptionField.getText(), Double.valueOf(optimalTimeField
-          .getText()), Double.valueOf(normalTimeField.getText()), new HashSet<>(dependencyList.as));
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
+//    @Override
+//    public void actionPerformed(ActionEvent e) {
 
 
-      if (leftOperand == null || leftOperand == 0.0) {
-        value = resultsTxt.getText() + value;
-      } else {
-        rightOperand = Double.valueOf(value);
-      }
-      resultsTxt.setText(value);
-    }
-  }
+//      if (leftOperand == null || leftOperand == 0.0) {
+//        value = resultsTxt.getText() + value;
+//      } else {
+//        rightOperand = Double.valueOf(value);
+//      }
+//      resultsTxt.setText(value);
+//    }
+//  }
 
-  public static void main(String[] args) {
-    JFrame frame = new JFrame("Add an Activity");
-    frame.setContentPane(new ActivityAddWindow().activityAddPane);
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.pack();
-    frame.setVisible(true);
-  }
+
 }
