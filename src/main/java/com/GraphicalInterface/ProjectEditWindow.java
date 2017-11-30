@@ -1,10 +1,12 @@
 package com.GraphicalInterface;
 
 import com.ActivityNetwork.ActivityNetwork;
+import com.ActivityNetwork.ActivityNode;
 import com.ActivityNetwork.NetworkController;
 import com.BaseInterface.UserAccount;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
 
@@ -42,11 +44,26 @@ public class ProjectEditWindow {
   /** Location of our icon. */
   private JLabel iconLabel;
 
+  /** Table of our network graph. */
+  private JTable graphTable;
+
+  /** The activity list in the slack tab. */
+  private JList<String> activityListInSlack;
+
+  /** Output of our selected node's total slack. */
+  private JLabel totalSlackOutput;
+
+  /** Output of our selected node's free slack. */
+  private JLabel freeSlackOutput;
+
+  /** Output of our selected node's safety slack. */
+  private JLabel safetySlackOutput;
+
   /** Our main frame. */
   private JFrame frame = new JFrame("Team Lychee AON");
 
   /** List model for our current activity list. */
-  private DefaultListModel<String> m = new DefaultListModel<>();
+  DefaultListModel<String> m = new DefaultListModel<>();
 
   /** Our working network. */
   private ActivityNetwork a;
@@ -65,6 +82,7 @@ public class ProjectEditWindow {
     if (!a.getNodeList().isEmpty()) {
       a.getNodeList().forEach(n -> m.addElement(n.getName()));
       currentActivityList.setModel(m);
+      activityListInSlack.setModel(m);
     }
 
     // Display our current deadline.
@@ -89,6 +107,7 @@ public class ProjectEditWindow {
     );
 
     addActivityButtonListeners(nc);
+    addSlackListeners();
     setupEditProjectFrame();
 
     frame.setContentPane(projectEditPane);
@@ -120,9 +139,10 @@ public class ProjectEditWindow {
     );
 
     addActivityButtonListeners(nc);
+    addSlackListeners();
     setupAddProjectFrame();
-    deadlineSpinner.setModel(new SpinnerNumberModel(1.00, 0.01, (double) Integer.MAX_VALUE, 0.01));
 
+    deadlineSpinner.setModel(new SpinnerNumberModel(1.00, 0.01, (double) Integer.MAX_VALUE, 0.01));
     frame.setContentPane(projectEditPane);
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     frame.setResizable(false);
@@ -138,18 +158,18 @@ public class ProjectEditWindow {
   private void addActivityButtonListeners(NetworkController nc) {
     editAnActivityButton.addActionListener(
         e -> {
-          if (!currentActivityList.isSelectionEmpty())    {
+          if (!currentActivityList.isSelectionEmpty()) {
             String activityName = currentActivityList.getSelectedValue();
-//          ActivityEditWindow w = new ActivityEditWindow(nc, a, activityName);
-//          w.setVisible();
+            ActivityEditWindow w = new ActivityEditWindow(nc, a, activityName, this);
+            w.setVisible();
           }
         }
     );
 
     addAnActivityButton.addActionListener(
         e -> {
-//          ActivityEditWindow w = new ActivityEditWindow(nc, a);
-//          w.setVisible();
+          ActivityEditWindow w = new ActivityEditWindow(nc, a, this);
+          w.setVisible();
         }
     );
 
@@ -166,8 +186,8 @@ public class ProjectEditWindow {
                     JOptionPane.ERROR_MESSAGE);
 
               } else {
-                m.clear();
                 updateActivityList(nc);
+                setupGraphTable();
               }
             }
           }
@@ -176,19 +196,64 @@ public class ProjectEditWindow {
 
     undoButton.addActionListener(
         e -> {
-          m.clear();
           nc.undoNetworkChange(a.getNetworkId());
           updateActivityList(nc);
+          setupGraphTable();
         }
     );
 
     redoButton.addActionListener(
         e -> {
-          m.clear();
           nc.redoNetworkChange(a.getNetworkId());
           updateActivityList(nc);
+          setupGraphTable();
         }
     );
+  }
+
+  /**
+   * Add action listeners for the slack tab.
+   */
+  private void addSlackListeners() {
+    activityListInSlack.addListSelectionListener(
+        e -> {
+          totalSlackOutput.setText(Double.toString(a.computeTotalSlack(
+              a.nodeIdFromName(activityListInSlack.getSelectedValue()))));
+          freeSlackOutput.setText(Double.toString(a.computeFreeSlack(
+              a.nodeIdFromName(activityListInSlack.getSelectedValue()))));
+          safetySlackOutput.setText(Double.toString(a.computeSafetySlack(
+              a.nodeIdFromName(activityListInSlack.getSelectedValue()))));
+        }
+    );
+  }
+
+  /**
+   * Setup the graph table (wonderful documentation isn't it?).
+   */
+  void setupGraphTable() {
+    DefaultTableModel m_2 = new DefaultTableModel();
+
+    // Attributes are the activity names, and the hours.
+    m_2.addColumn("Activity Name");
+    for (int i = 0; i < a.getHoursDeadline() + 1; i++) {
+      m_2.addColumn(Integer.toString(i));
+    }
+
+    // Collect the data for this table.
+    ArrayList<ActivityNode> u = a.getNodeList();
+    for (ActivityNode a_1 : u) {
+      Object[] row = new Object[m_2.getColumnCount()];
+
+      // For each corresponding time, we mark the cell with an 'X".
+      row[0] = a_1.getName();
+      for (int j = (int) a.computeEarliestStartTime(a_1.getNodeId());
+           j < (int) a.computeEarliestFinishTime(a_1.getNodeId()); j++) {
+        row[j] = "X";
+      }
+      m_2.addRow(row);
+    }
+
+    graphTable.setModel(m_2);
   }
 
   /**
@@ -196,12 +261,12 @@ public class ProjectEditWindow {
    *
    * @param nc Working network controller.
    */
-  private void updateActivityList(NetworkController nc) {
+  void updateActivityList(NetworkController nc) {
+    m.clear();
     a = nc.retrieveNetwork(a.getNetworkId());
-    if (!a.getNodeList().isEmpty()) {
-      a.getNodeList().forEach(n -> m.addElement(n.getName()));
-      currentActivityList.setModel(m);
-    }
+    a.getNodeList().forEach(n -> m.addElement(n.getName()));
+    currentActivityList.setModel(m);
+    activityListInSlack.setModel(m);
   }
 
   /**
