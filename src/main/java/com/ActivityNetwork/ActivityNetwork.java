@@ -211,7 +211,7 @@ public class ActivityNetwork {
    * given ID.
    */
   public String nodeNameFromId(long nodeID) {
-    for (ActivityNode n :  this.nodeList) {
+    for (ActivityNode n : this.nodeList) {
       if (n.getNodeId() == nodeID) {
         return n.getName();
       }
@@ -325,39 +325,37 @@ public class ActivityNetwork {
     }
   }
 
-  /**
-   * Mutator method for the network name field.
-   *
-   * @param networkName New name of the network.
-   */
-  void setNetworkName(String networkName) {
-    this.networkName = networkName;
-  }
+//  /**
+//   * Mutator method for the network name field.
+//   *
+//   * @param networkName New name of the network.
+//   */
+//  void setNetworkName(String networkName) {
+//    this.networkName = networkName;
+//  }
 
-   /**
+  /**
    * Compute the earliest time the node with the given ID can finish.
    *
    * @param nodeId ID of the node to compute the EF of.
    * @return The earliest finish time of the given node.
    */
   @SuppressWarnings("Duplicates")
-  private double computeEarliestFinishTime(long nodeId) {
-     
-	  	double number = 0;
-	  
-    	for(int i=0; i<nodeList.size(); i++) {
-    		if(nodeList.get(i).getNodeId()==nodeId) {
-    			number=number+nodeList.get(i).getTimes()[3];
-    			break;
-    		}else {
-    			number=number+nodeList.get(i).getTimes()[3];
-    		}
-	
-    	}
-    return number;
-    }
+  public double computeEarliestFinishTime(long nodeId) {
+    double number = 0;
 
-  
+    for (ActivityNode aNodeList : nodeList) {
+      if (aNodeList.getNodeId() == nodeId) {
+        number = number + aNodeList.getTimes()[3];
+        break;
+      } else {
+        number = number + aNodeList.getTimes()[3];
+      }
+
+    }
+    return number;
+  }
+
 
   /**
    * Compute the latest time the node with the given ID can finish.
@@ -367,18 +365,16 @@ public class ActivityNetwork {
    */
   @SuppressWarnings("Duplicates")
   private double computeLatestFinishTime(long nodeId) {
+    double number = computeEarliestFinishTime(nodeId);
 
-    double finish = computeEarliestFinishTime(nodeId);
-    double number = finish;
- 
-  	for(int i=0; i<nodeList.size(); i++) {
-  		if(nodeList.get(i).getNodeId()==nodeId) {
-  			break;
-  		}else {
-  			number=number-nodeList.get(nodeList.size()-(i+1)).getTimes()[3];
-  		}
-  	}
-  return number;
+    for (int i = 0; i < nodeList.size(); i++) {
+      if (nodeList.get(i).getNodeId() == nodeId) {
+        break;
+      } else {
+        number = number - nodeList.get(nodeList.size() - (i + 1)).getTimes()[3];
+      }
+    }
+    return number;
   }
 
 
@@ -389,19 +385,18 @@ public class ActivityNetwork {
    * @return The earliest start time of the given node.
    */
   @SuppressWarnings("Duplicates")
-  private double computeEarliestStartTime(long nodeId) {
-	  
-      	double number = 0;
-      	for(int i=0; i<nodeList.size(); i++) {
-      		if(nodeList.get(i).getNodeId()==nodeId) {
-      			break;
-      		}else {
-      			number=number+nodeList.get(i).getTimes()[3];
-      		}
-      	}
-      return number; 
+  public double computeEarliestStartTime(long nodeId) {
+    double number = 0;
+    for (ActivityNode aNodeList : nodeList) {
+      if (aNodeList.getNodeId() == nodeId) {
+        break;
+      } else {
+        number = number + aNodeList.getTimes()[3];
+      }
     }
-  
+    return number;
+  }
+
 
   /**
    * Compute the latest time a node with the given ID can start.
@@ -411,21 +406,19 @@ public class ActivityNetwork {
    */
   @SuppressWarnings("Duplicates")
   private double computeLatestStartTime(long nodeId) {
+    double number = computeEarliestFinishTime(nodeId);
 
-	    double finish = computeEarliestFinishTime(nodeId);
-	    double number = finish;
-	   
-	  	for(int i=0; i<nodeList.size(); i++) {
-	  		if(nodeList.get(i).getNodeId()==nodeId) {
-	  			number=number-nodeList.get(nodeList.size()-(i+1)).getTimes()[3];
-	  			break;
-	  		}else {
-	  			number=number-nodeList.get(nodeList.size()-(i+1)).getTimes()[3];
-	  		}
+    for (int i = 0; i < nodeList.size(); i++) {
+      if (nodeList.get(i).getNodeId() == nodeId) {
+        number = number - nodeList.get(nodeList.size() - (i + 1)).getTimes()[3];
+        break;
+      } else {
+        number = number - nodeList.get(nodeList.size() - (i + 1)).getTimes()[3];
+      }
 
-	  	}
-	  return number;
-	  }
+    }
+    return number;
+  }
 
   /**
    * Find all predecessors for the node matching the given node ID.
@@ -434,22 +427,22 @@ public class ActivityNetwork {
    * @return All predecessors for the the given node.
    */
   private ArrayList<ActivityNode> findPredecessors(long nodeId) {
-	  	int index=0;
-	    ArrayList<ActivityNode> nodesAfter = new ArrayList<>();
-	    
-	    for(int i=0;i<nodeList.size();i++) {
-	    	if(nodeList.get(i).getNodeId()==nodeId) {
-	    		index = i;
-	    		break;
-	    	}
-	    }
+    int index = 0;
+    ArrayList<ActivityNode> nodesAfter = new ArrayList<>();
 
-	    for (int i = index; i>0; i--) {
-	        nodesAfter.add(nodeList.get(i));
-	    }
-	    
-	    return nodesAfter;
-	  }
+    for (int i = 0; i < nodeList.size(); i++) {
+      if (nodeList.get(i).getNodeId() == nodeId) {
+        index = i;
+        break;
+      }
+    }
+
+    for (int i = index; i > 0; i--) {
+      nodesAfter.add(nodeList.get(i));
+    }
+
+    return nodesAfter;
+  }
 
   /**
    * Find all successors for the node matching the given node ID.
@@ -458,19 +451,19 @@ public class ActivityNetwork {
    * @return All successors for the given node.
    */
   private ArrayList<ActivityNode> findSuccessors(long nodeId) {
-	  int index=0;
-	  ArrayList<ActivityNode> nodesAfter = new ArrayList<>();
-	  
-	  for(int i=0;i<nodeList.size();i++) {
-		  if(nodeList.get(i).getNodeId()==nodeId) {
-    		index = i;
-    		break;
-		  }
-	  }
-	  
-      for (int i = index; i<nodeList.size(); i++) {
-    	  nodesAfter.add(nodeList.get(i));
+    int index = 0;
+    ArrayList<ActivityNode> nodesAfter = new ArrayList<>();
+
+    for (int i = 0; i < nodeList.size(); i++) {
+      if (nodeList.get(i).getNodeId() == nodeId) {
+        index = i;
+        break;
       }
+    }
+
+    for (int i = index; i < nodeList.size(); i++) {
+      nodesAfter.add(nodeList.get(i));
+    }
     return nodesAfter;
   }
 
@@ -528,33 +521,28 @@ public class ActivityNetwork {
     }
   }
 
-/**
- * Compute the critical path of the current network, and return a sorted array of node IDs that represent this path.
- *
- * @return An array of node IDs that pertain to this network, which represent the current critical path.
- */
-/**
- * Compute the critical path of the current network, and return a sorted array of node IDs that represent this path.
- *
- * @return An array of node IDs that pertain to this network, which represent the current critical path.
- */
-public ArrayList<Long> computeCriticalPath() {
+  /**
+   * Compute the critical path of the current network, and return a sorted array of node IDs that represent this path.
+   *
+   * @return An array of node IDs that pertain to this network, which represent the current critical path.
+   */
+  public ArrayList<Long> computeCriticalPath() {
     // Return an empty list if our network is empty.
     if (nodeList.isEmpty()) {
       return new ArrayList<>();
     }
-    
+
     endDuration = 0;
     ArrayList<Long> startList = new ArrayList<>();
     ArrayList<ActivityNode> reverseList = new ArrayList<>();
-    
-    for(int i = 1;i<=nodeList.size();i++) {
-    	reverseList.add(nodeList.get(nodeList.size()-i));
+
+    for (int i = 1; i <= nodeList.size(); i++) {
+      reverseList.add(nodeList.get(nodeList.size() - i));
     }
     // Begin the recursion.
     startList.clear();
     startList.add(reverseList.get(0).getNodeId());
-    recursionCritPath(0, 0, startList,reverseList);
+    recursionCritPath(0, 0, startList, reverseList);
 
     return critPathIds;
   }
@@ -566,11 +554,11 @@ public ArrayList<Long> computeCriticalPath() {
    * @param nodeDuration Total duration of all previous nodes visited.
    * @param nodeIds      List of all dependencies visited
    */
-private void recursionCritPath(int index, double nodeDuration, ArrayList<Long> nodeIds,ArrayList<ActivityNode> reverseList) {
+  private void recursionCritPath(int index, double nodeDuration, ArrayList<Long> nodeIds, ArrayList<ActivityNode> reverseList) {
     int depIndex = 0; // Keep track of where the dependency node is located in nodeList.
     ArrayList<Long> idList = new ArrayList<>(nodeIds); // First idList values = first node located in nodeList.
-    long id = 0;
-  
+    long id;
+
     // Node has dependencies to follow.
     if (reverseList.get(index).getDependencies().size() != 0) {
       // Grab dependencies of node and convert it to arrayList.
@@ -579,29 +567,28 @@ private void recursionCritPath(int index, double nodeDuration, ArrayList<Long> n
 
       // Grab dependency ID and locate the index of where dependency is located in nodeList.
       for (Long aDepList : depList) {
-           id = aDepList;
+        id = aDepList;
 
-           for(int i =0; i<reverseList.size();i++) {
-        	   if(id==reverseList.get(i).getNodeId()) {
-        		   depIndex=i;
-        	   }
-           }
+        for (int i = 0; i < reverseList.size(); i++) {
+          if (id == reverseList.get(i).getNodeId()) {
+            depIndex = i;
+          }
+        }
 
         // Deposit dependency to list to keep track of unique path.
-        if(!idList.contains(retrieveNode(id).getNodeId())) {
-        	idList.add(id);
+        if (!idList.contains(retrieveNode(id).getNodeId())) {
+          idList.add(id);
         }
         double duration = reverseList.get(index).getTimes()[3];
 
         // Track duration of unique path.
         double total = duration + nodeDuration;
-        recursionCritPath(depIndex, total, idList,reverseList);
+        recursionCritPath(depIndex, total, idList, reverseList);
 
         // Starts index back to the front of list on next iteration.
         depIndex = 0;
       }
-    } 
-    else {
+    } else {
       // grab duration of last node.
       double duration = reverseList.get(index).getTimes()[3];
       // Total duration time of specific path.
@@ -613,6 +600,7 @@ private void recursionCritPath(int index, double nodeDuration, ArrayList<Long> n
       }
     }
   }
+
   /**
    * Accessor method for the network's starting node ID.
    *
