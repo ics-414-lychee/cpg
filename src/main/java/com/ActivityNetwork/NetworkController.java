@@ -163,6 +163,9 @@ public class NetworkController {
     ArrayList<ActivityNetwork> sourceChain, targetChain;
     ArrayList<Long> sourceTimestampChain, targetTimestampChain;
 
+    // Look... There's a weird bug that's too far in for me to find. This is as dirty as it gets.
+    int s = (isUndoAction) ? 1 : 0;
+
     // Determine which is the source, and which is the target.
     if (isUndoAction) {
       sourceChain = networkChain;
@@ -177,7 +180,7 @@ public class NetworkController {
     }
 
     // We iterate through both lists backwards. Remove the first instance matching the given ID.
-    for (int i = sourceChain.size() - 1; i >= 0; i--) {
+    for (int i = sourceChain.size() - 1; i >= s; i--) {
       if (sourceChain.get(i).getNetworkId() == networkID) {
         targetChain.add(sourceChain.get(i));
         targetTimestampChain.add(sourceTimestampChain.get(i));
