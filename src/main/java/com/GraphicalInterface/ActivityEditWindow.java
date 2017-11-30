@@ -8,7 +8,7 @@ import java.util.HashSet;
 import com.ActivityNetwork.ActivityNode;
 import com.ActivityNetwork.NetworkController;
 
-public class ActivityAddWindow {
+public class ActivityEditWindow {
   /** Panel containing the activity addition pane. */
   private JPanel activityAddPane;
 
@@ -18,23 +18,16 @@ public class ActivityAddWindow {
   /** Field holding the desired description. */
   private JTextField descriptionField;
 
-  /** Field holding the desired optimal time. */
-  private JTextField optimalTimeField;
-
-  /** Field holding the desired normal time. */
-  private JTextField normalTimeField;
-
-  /** Field holding the desired pessimistic time. */
-  private JTextField pessimisticTimeField;
-
-  /** Place to insert our output. */
-  private JTextPane outputPane;
-
   /** List of dependencies to display. */
   private JList dependencyList;
 
   /** Button to submit the activity. */
   private JButton submitActivityButton;
+  private JSpinner optimalTimeSpinner;
+  private JSpinner normalTimeSpinner;
+  private JSpinner pessimisticTimeSpinner;
+  private JLabel iconLabel;
+  private JLabel activityNameLabel;
 
   /** Network controller to handle activity adding. */
   private NetworkController nc;
@@ -45,7 +38,7 @@ public class ActivityAddWindow {
    * @param nc
    */
 //  @SuppressWarnings("BoundFieldAssignment")
-//  public ActivityAddWindow(NetworkController nc) {
+//  public ActivityEditWindow(NetworkController nc) {
 //    this.nc = nc;
 //
 //    submitActivityButton.addActionListener(new SubmitButtonClicked());
