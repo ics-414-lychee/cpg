@@ -170,7 +170,7 @@ public class ActivityNetwork {
   }
 
   /**
-   * Insert the given node into node list. Checks for node ID andm name uniqueness.
+   * Insert the given node into node list. Checks for node ID and name uniqueness.
    *
    * @param node Node to insert into the node list network.
    * @return True if the insertion was successful. False otherwise.

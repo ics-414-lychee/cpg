@@ -135,13 +135,13 @@ public class ActivityEditWindow {
             dependencyList.getSelectedValuesList().forEach(d -> dependencies.add(a.nodeIdFromName(d)));
 
             // Insert the node into our network.
+            a.deleteNode(n.getNodeId());
             n = new ActivityNode(n.getNodeId(), newName, description, optimisticTime, normalTime, pessimisticTime);
             n.setDependencies(dependencies);
 
             a.insertNode(n);
             nc.modifyNetwork(a);
             nc.storeNetwork(a.getNetworkId());
-            parent.m.addElement(name);
             parent.updateActivityList(nc);
             parent.setupGraphTable();
             frame.dispose();
@@ -159,7 +159,7 @@ public class ActivityEditWindow {
   /**
    * Verify the current user input on the form.
    *
-   * @param a Activity network to verify against.
+   * @param a      Activity network to verify against.
    * @param isEdit Flag to check for user duplicates or not.
    * @return True if the content is valid. False otherwise.
    */
