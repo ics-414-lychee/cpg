@@ -54,9 +54,13 @@ public class ActivityEditWindow {
   ActivityEditWindow(NetworkController nc, ActivityNetwork a, ProjectEditWindow parent) {
     setActivityFrame();
 
+    DefaultListModel<String> m = new DefaultListModel<>();
+    a.getNodeList().forEach(n1 -> m.addElement(n1.getName()));
+    dependencyList.setModel(m);
+
     submitActivityButton.addActionListener(
         e -> {
-          if (verifyInfo(a)) {
+          if (verifyInfo(a, false)) {
             // The new node ID is incremented from the node with the current largest node ID. Start at 1 if this is empty.
             long nodeID = a.getNodeList().stream().max(
                 Comparator.comparingLong(ActivityNode::getNodeId)).orElse(
@@ -80,6 +84,7 @@ public class ActivityEditWindow {
             a.setHoursDeadline(a.getHoursDeadline() + n.getTimes()[3]);
 
             nc.modifyNetwork(a);
+            nc.storeNetwork(a.getNetworkId());
             parent.updateActivityList(nc);
             parent.setupGraphTable();
             frame.dispose();
@@ -88,7 +93,7 @@ public class ActivityEditWindow {
     );
 
     frame.setContentPane(activityEditPane);
-    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setResizable(false);
     frame.pack();
     frame.setLocationRelativeTo(null);
@@ -119,7 +124,7 @@ public class ActivityEditWindow {
 
     submitActivityButton.addActionListener(
         e -> {
-          if (verifyInfo(a)) {
+          if (verifyInfo(a, true)) {
             // Pull all the good data...
             String newName = nameField.getText();
             String description = descriptionField.getText();
@@ -135,6 +140,7 @@ public class ActivityEditWindow {
 
             a.insertNode(n);
             nc.modifyNetwork(a);
+            nc.storeNetwork(a.getNetworkId());
             parent.m.addElement(name);
             parent.updateActivityList(nc);
             parent.setupGraphTable();
@@ -144,7 +150,7 @@ public class ActivityEditWindow {
     );
 
     frame.setContentPane(activityEditPane);
-    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setResizable(false);
     frame.pack();
     frame.setLocationRelativeTo(null);
@@ -154,9 +160,10 @@ public class ActivityEditWindow {
    * Verify the current user input on the form.
    *
    * @param a Activity network to verify against.
+   * @param isEdit Flag to check for user duplicates or not.
    * @return True if the content is valid. False otherwise.
    */
-  private boolean verifyInfo(ActivityNetwork a) {
+  private boolean verifyInfo(ActivityNetwork a, boolean isEdit) {
     try {
       // Verify that any manually entered values are actually numbers.
       optimisticTimeSpinner.commitEdit();
@@ -178,7 +185,7 @@ public class ActivityEditWindow {
     }
 
     // Verify that the name is not taken by other nodes.
-    if (a.getNodeList().stream().anyMatch(n1 -> n1.getName().equals(nameField.getText()))) {
+    if (!isEdit && a.getNodeList().stream().anyMatch(n1 -> n1.getName().equals(nameField.getText()))) {
       JOptionPane.showMessageDialog(frame, "There exists an activity with that name. Please choose another.",
           "Error", JOptionPane.ERROR_MESSAGE);
       return false;
@@ -193,7 +200,7 @@ public class ActivityEditWindow {
   private void setActivityFrame() {
     // Set our icon.
     ImageIcon icon = new ImageIcon(new ImageIcon(
-        getClass().getResource("logo.png")).getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
+        getClass().getResource("logo-2.png")).getImage().getScaledInstance(60, 60, Image.SCALE_DEFAULT));
     iconLabel.setIcon(icon);
 
     optimisticTimeSpinner.setModel(new SpinnerNumberModel(1.00, 0.01, (double) Integer.MAX_VALUE, 0.01));

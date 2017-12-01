@@ -58,7 +58,7 @@ public class ProjectOverviewWindow {
 
     // Set our icon.
     ImageIcon icon = new ImageIcon(new ImageIcon(
-        getClass().getResource("logo.png")).getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
+        getClass().getResource("logo-2.png")).getImage().getScaledInstance(60, 60, Image.SCALE_DEFAULT));
     titleLabel.setIcon(icon);
 
     addProjectButtonListeners(m);
@@ -109,10 +109,14 @@ public class ProjectOverviewWindow {
             response = (String) JOptionPane.showInputDialog(frame, "Please enter the name for your network. " +
                     "This cannot be changed, so choose carefully!", "Message", JOptionPane.QUESTION_MESSAGE, null,
                 null, "My Project");
-            long networkID = nc.createNetwork(response);
 
-            // If the network already exists, repeat.
-            if (networkID == 0) {
+            // If there is no name, repeat.
+            if (response.equals("")) {
+              JOptionPane.showMessageDialog(frame, "Please enter a name.", "Error",
+                  JOptionPane.ERROR_MESSAGE);
+
+            } else if (nc.createNetwork(response) == 0) {
+              // If the network already exists, repeat.
               JOptionPane.showMessageDialog(frame, "Network already exists. Please choose another name.", "Error",
                   JOptionPane.ERROR_MESSAGE);
 

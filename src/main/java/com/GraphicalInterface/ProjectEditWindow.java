@@ -10,6 +10,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
 
+import static java.lang.Math.abs;
+
 public class ProjectEditWindow {
   /** Button to add an activity to the current project. */
   private JButton addAnActivityButton;
@@ -59,6 +61,9 @@ public class ProjectEditWindow {
   /** Output of our selected node's safety slack. */
   private JLabel safetySlackOutput;
 
+  /** Scroll pane for the graph. */
+  private JScrollPane graphScrollPane;
+
   /** Our main frame. */
   private JFrame frame = new JFrame("Team Lychee AON");
 
@@ -101,6 +106,7 @@ public class ProjectEditWindow {
 
             // Move our local network to the network controller. Destroy this frame.
             nc.modifyNetwork(a);
+            nc.storeNetwork(a.getNetworkId());
             frame.dispose();
           }
         }
@@ -109,9 +115,10 @@ public class ProjectEditWindow {
     addActivityButtonListeners(nc);
     addSlackListeners();
     setupEditProjectFrame();
+    setupGraphTable();
 
     frame.setContentPane(projectEditPane);
-    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setResizable(false);
     frame.pack();
     frame.setLocationRelativeTo(null);
@@ -133,6 +140,7 @@ public class ProjectEditWindow {
           if (verifyInput()) {
             // Move our local network to the network controller. Destroy (and I mean OBLITERATE) this frame.
             nc.modifyNetwork(a);
+            nc.storeNetwork(a.getNetworkId());
             frame.dispose();
           }
         }
@@ -141,10 +149,11 @@ public class ProjectEditWindow {
     addActivityButtonListeners(nc);
     addSlackListeners();
     setupAddProjectFrame();
+    setupGraphTable();
 
     deadlineSpinner.setModel(new SpinnerNumberModel(1.00, 0.01, (double) Integer.MAX_VALUE, 0.01));
     frame.setContentPane(projectEditPane);
-    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setResizable(false);
     frame.pack();
     frame.setLocationRelativeTo(null);
@@ -196,17 +205,19 @@ public class ProjectEditWindow {
 
     undoButton.addActionListener(
         e -> {
-          nc.undoNetworkChange(a.getNetworkId());
-          updateActivityList(nc);
-          setupGraphTable();
+          if (nc.undoNetworkChange(a.getNetworkId())) {
+            updateActivityList(nc);
+            setupGraphTable();
+          }
         }
     );
 
     redoButton.addActionListener(
         e -> {
-          nc.redoNetworkChange(a.getNetworkId());
-          updateActivityList(nc);
-          setupGraphTable();
+          if (nc.redoNetworkChange(a.getNetworkId())) {
+            updateActivityList(nc);
+            setupGraphTable();
+          }
         }
     );
   }
@@ -217,12 +228,12 @@ public class ProjectEditWindow {
   private void addSlackListeners() {
     activityListInSlack.addListSelectionListener(
         e -> {
-          totalSlackOutput.setText(Double.toString(a.computeTotalSlack(
-              a.nodeIdFromName(activityListInSlack.getSelectedValue()))));
-          freeSlackOutput.setText(Double.toString(a.computeFreeSlack(
-              a.nodeIdFromName(activityListInSlack.getSelectedValue()))));
-          safetySlackOutput.setText(Double.toString(a.computeSafetySlack(
-              a.nodeIdFromName(activityListInSlack.getSelectedValue()))));
+          totalSlackOutput.setText(Double.toString(abs(a.computeTotalSlack(
+              a.nodeIdFromName(activityListInSlack.getSelectedValue())))));
+          freeSlackOutput.setText(Double.toString(abs(a.computeFreeSlack(
+              a.nodeIdFromName(activityListInSlack.getSelectedValue())))));
+          safetySlackOutput.setText(Double.toString(abs(a.computeSafetySlack(
+              a.nodeIdFromName(activityListInSlack.getSelectedValue())))));
         }
     );
   }
@@ -248,7 +259,7 @@ public class ProjectEditWindow {
       row[0] = a_1.getName();
       for (int j = (int) a.computeEarliestStartTime(a_1.getNodeId());
            j < (int) a.computeEarliestFinishTime(a_1.getNodeId()); j++) {
-        row[j] = "X";
+        row[j + 1] = "X";
       }
       m_2.addRow(row);
     }
@@ -307,9 +318,11 @@ public class ProjectEditWindow {
   private void setupAddProjectFrame() {
     // Set our icon.
     ImageIcon icon = new ImageIcon(new ImageIcon(
-        getClass().getResource("logo.png")).getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
+        getClass().getResource("logo-2.png")).getImage().getScaledInstance(60, 60, Image.SCALE_DEFAULT));
     iconLabel.setIcon(icon);
 
+    graphScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    graphTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     addProjectButton.setText("Add a New Project");
   }
 
@@ -319,9 +332,11 @@ public class ProjectEditWindow {
   private void setupEditProjectFrame() {
     // Set our icon.
     ImageIcon icon = new ImageIcon(new ImageIcon(
-        getClass().getResource("logo.png")).getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
+        getClass().getResource("logo-2.png")).getImage().getScaledInstance(60, 60, Image.SCALE_DEFAULT));
     iconLabel.setIcon(icon);
 
+    graphScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    graphTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     addProjectButton.setText("Submit Changes");
   }
 }

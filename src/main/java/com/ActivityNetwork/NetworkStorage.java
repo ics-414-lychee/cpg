@@ -45,8 +45,8 @@ public final class NetworkStorage {
 
       // Times are accessed as an array.
       double times[] = n.getTimes();
-      node.put("NormalTime", times[0]);
-      node.put("OptimisticTime", times[1]);
+      node.put("OptimisticTime", times[0]);
+      node.put("NormalTime", times[1]);
       node.put("PessimisticTime", times[2]);
 
       // We store our dependency list as a comma-separated list. Store the nodes in the main list.

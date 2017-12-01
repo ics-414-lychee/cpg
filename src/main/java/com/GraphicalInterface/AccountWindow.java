@@ -66,7 +66,7 @@ public class AccountWindow {
 
     // Set our icon.
     ImageIcon icon = new ImageIcon(new ImageIcon(
-        getClass().getResource("logo.png")).getImage().getScaledInstance(30, 30, Image.SCALE_DEFAULT));
+        getClass().getResource("logo-2.png")).getImage().getScaledInstance(30, 30, Image.SCALE_DEFAULT));
     titleLabel.setIcon(icon);
 
     // We default to our login frame.
@@ -170,7 +170,7 @@ public class AccountWindow {
     titleLabel.setHorizontalAlignment(JLabel.LEFT);
 
     ImageIcon icon = new ImageIcon(new ImageIcon(
-        getClass().getResource("logo.png")).getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
+        getClass().getResource("logo-2.png")).getImage().getScaledInstance(60, 60, Image.SCALE_DEFAULT));
     iconLabel.setIcon(icon);
     iconLabel.setVisible(true);
 
